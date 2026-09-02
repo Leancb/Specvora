@@ -5,6 +5,11 @@ from pathlib import Path
 from specvora.audit import append_assessment, verify_audit_log
 from specvora.confidence import TestRunResult, assess_release
 from specvora.pipeline import run_analysis
+from specvora.playwright_ingest import (
+    PlaywrightIngestRequest,
+    ingest_playwright_report,
+    write_playwright_evidence,
+)
 from specvora.playwright_runner import PlaywrightRunnerRequest, run_generated_playwright
 from specvora.pytest_ingest import PytestIngestRequest, ingest_pytest_report, write_evidence
 from specvora.runner import RunnerRequest, run_generated_tests
@@ -60,6 +65,18 @@ def main() -> None:
     web_run_parser.add_argument("--allowed-host", action="append", required=True)
     web_run_parser.add_argument("--approval", required=True)
     web_run_parser.add_argument("--timeout", type=int, default=120)
+    web_ingest_parser = commands.add_parser(
+        "ingest-playwright", help="Normalize a confined Playwright JSON report"
+    )
+    web_ingest_parser.add_argument("report_path", type=Path)
+    web_ingest_parser.add_argument("--workspace-root", type=Path, required=True)
+    web_ingest_parser.add_argument("--project-id", required=True)
+    web_ingest_parser.add_argument("--run-id", required=True)
+    web_ingest_parser.add_argument("--requirements-total", type=int, required=True)
+    web_ingest_parser.add_argument("--requirements-covered", type=int, required=True)
+    web_ingest_parser.add_argument("--critical-marker", action="append", default=[])
+    web_ingest_parser.add_argument("--evidence-out", type=Path, required=True)
+    web_ingest_parser.add_argument("--audit-log", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "analyze":
         result, files = run_analysis(args.project_file, args.workspace_root)
@@ -124,7 +141,7 @@ def main() -> None:
             "evidence": str(evidence_path),
             "assessment": assessment.model_dump(mode="json"),
         }
-    else:
+    elif args.command == "run-playwright":
         run = run_generated_playwright(
             PlaywrightRunnerRequest(
                 workspace_root=args.workspace_root,
@@ -137,4 +154,24 @@ def main() -> None:
             )
         )
         output = {"run": run.model_dump(mode="json")}
+    else:
+        evidence = ingest_playwright_report(
+            PlaywrightIngestRequest(
+                project_id=args.project_id,
+                run_id=args.run_id,
+                report_path=args.report_path,
+                workspace_root=args.workspace_root,
+                requirements_total=args.requirements_total,
+                requirements_covered=args.requirements_covered,
+                critical_markers=args.critical_marker,
+            )
+        )
+        evidence_path = write_playwright_evidence(evidence, args.evidence_out, args.workspace_root)
+        assessment = assess_release(evidence.result)
+        append_assessment(args.audit_log, assessment)
+        output = {
+            "evidence": str(evidence_path),
+            "report_sha256": evidence.report_sha256,
+            "assessment": assessment.model_dump(mode="json"),
+        }
     print(json.dumps(output, indent=2))
