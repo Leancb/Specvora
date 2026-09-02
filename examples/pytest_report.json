@@ -1,0 +1,18 @@
+{
+  "created": 1788316800.0,
+  "duration": 1.25,
+  "exitcode": 1,
+  "root": "D:/Specvora",
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "total": 4
+  },
+  "tests": [
+    {"nodeid": "tests/test_api.py::test_health", "outcome": "passed"},
+    {"nodeid": "tests/test_api.py::test_create_pet", "outcome": "passed"},
+    {"nodeid": "tests/test_security.py::test_requires_auth", "outcome": "failed"},
+    {"nodeid": "tests/test_ui.py::test_optional", "outcome": "skipped"}
+  ]
+}

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from specvora.audit import append_assessment
 from specvora.confidence import ConfidenceAssessment, TestRunResult, assess_release
 from specvora.pipeline import run_analysis
+from specvora.pytest_ingest import PytestEvidence, PytestIngestRequest, ingest_pytest_report
 
 app = FastAPI(title="Specvora", version="0.1.0")
 
@@ -45,5 +46,13 @@ def assess_results(request: AssessRequest) -> ConfidenceAssessment:
         assessment = assess_release(request.result)
         append_assessment(request.audit_log, assessment)
         return assessment
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/ingest/pytest", response_model=PytestEvidence)
+def ingest_pytest(request: PytestIngestRequest) -> PytestEvidence:
+    try:
+        return ingest_pytest_report(request)
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
