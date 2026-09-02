@@ -41,6 +41,10 @@ Change one failed test into a critical failure and predict the decision before r
 
 Run `python -m pytest --cov=specvora --cov-report=term-missing -q` and `python -m ruff check src tests`. Relate each control to its test rather than treating coverage as proof by itself.
 
+### Lesson 6 — Generated-case validation
+
+Inspect `request-cases.json` together with `validation-report.json`. Confirm positive cases satisfy the schema, negatives are rejected, and overlapping `oneOf` alternatives are reported before human approval.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
