@@ -18,6 +18,7 @@ class ValidationFinding(BaseModel):
         "INEFFECTIVE_NEGATIVE",
         "UNION_OVERLAP",
         "IMPOSSIBLE_VARIANT",
+        "INVALID_JOURNEY",
     ]
     message: str
 

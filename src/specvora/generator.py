@@ -4,6 +4,7 @@ from pathlib import Path
 from specvora.case_validation import validate_request_cases
 from specvora.data_cases import generate_request_cases
 from specvora.models import AnalysisResult
+from specvora.playwright import generate_playwright_artifacts, validate_web_journeys
 from specvora.quality_gate import evaluate_generation_gate
 
 
@@ -21,6 +22,7 @@ def generate_artifacts(result: AnalysisResult, output_dir: Path) -> list[Path]:
         validate_request_cases(operation, cases_by_operation[operation.operation_id])
         for operation in result.operations
     ]
+    validation_models.extend(validate_web_journeys(result.project))
     validations = [validation.model_dump(mode="json") for validation in validation_models]
     quality_gate = evaluate_generation_gate(validation_models).model_dump(mode="json")
     files = {
@@ -37,6 +39,7 @@ def generate_artifacts(result: AnalysisResult, output_dir: Path) -> list[Path]:
         target = output_dir / name
         target.write_text(content.rstrip() + "\n", encoding="utf-8")
         written.append(target)
+    written.extend(generate_playwright_artifacts(result.project, output_dir))
     return written
 
 
