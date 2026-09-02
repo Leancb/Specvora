@@ -23,6 +23,7 @@ dependencies = [
 dev = [
   "pytest>=8,<10",
   "pytest-cov>=6,<8",
+  "pytest-json-report>=1.5,<2",
   "ruff>=0.11,<1",
 ]
 
@@ -49,4 +50,3 @@ source = ["specvora"]
 [tool.coverage.report]
 fail_under = 85
 show_missing = true
-
