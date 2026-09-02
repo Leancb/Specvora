@@ -1,0 +1,7 @@
+{
+  "project_id": "petstore-demo",
+  "requirements": ["Consumers can retrieve a pet by its identifier"],
+  "openapi_path": "petstore/openapi.yaml",
+  "base_url": "http://localhost:8080",
+  "allowed_hosts": ["localhost"]
+}
