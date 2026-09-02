@@ -4,6 +4,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp/
 .ruff_cache/
 .coverage
 htmlcov/
@@ -12,4 +13,3 @@ build/
 workspaces/*/generated/
 workspaces/*/runs/
 !workspaces/.gitkeep
-
