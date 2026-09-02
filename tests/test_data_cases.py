@@ -59,3 +59,60 @@ def test_optional_operation_still_has_one_valid_case() -> None:
         operation_id="health", method="GET", path="/health", success_statuses=[200]
     )
     assert [case.kind for case in generate_request_cases(operation)] == ["valid"]
+
+
+def test_generates_cases_for_every_oneof_variant() -> None:
+    operation = Operation(
+        operation_id="createPayment",
+        method="POST",
+        path="/payments",
+        success_statuses=[201],
+        request_schema={
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": ["card"],
+                    "properties": {"card": {"type": "string", "minLength": 4}},
+                },
+                {
+                    "type": "object",
+                    "required": ["pix"],
+                    "properties": {"pix": {"type": "string", "format": "email"}},
+                },
+            ],
+            "x-specvora-union-policy": "all-variants",
+        },
+    )
+    cases = generate_request_cases(operation)
+    valid = [case for case in cases if case.kind == "valid"]
+    assert [case.case_id for case in valid] == [
+        "createPayment-valid-oneOf-1",
+        "createPayment-valid-oneOf-2",
+    ]
+    assert [case.body for case in valid] == [{"card": "xxxx"}, {"pix": "qa@example.com"}]
+    assert {case.case_id for case in cases if case.kind == "missing_required"} == {
+        "createPayment-missing-body-card-oneOf-1",
+        "createPayment-missing-body-pix-oneOf-2",
+    }
+
+
+def test_generates_additional_upper_and_array_boundaries() -> None:
+    schema = {
+        "type": "object",
+        "required": ["code", "roles"],
+        "properties": {
+            "code": {"type": "string", "maxLength": 2},
+            "roles": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+        },
+    }
+    operation = Operation(
+        operation_id="createRole",
+        method="POST",
+        path="/roles",
+        success_statuses=[201],
+        request_schema=schema,
+    )
+    cases = generate_request_cases(operation)
+    assert cases[0].body == {"code": "x", "roles": ["x", "x"]}
+    boundary = next(case for case in cases if case.kind == "invalid_boundary")
+    assert boundary.body["code"] == "xxx"

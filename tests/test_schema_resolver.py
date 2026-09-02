@@ -31,11 +31,11 @@ def test_resolves_internal_reference_and_allof_composition() -> None:
     assert set(schema["properties"]) == {"id", "name"}
 
 
-def test_selects_first_union_variant_deterministically() -> None:
+def test_preserves_all_union_variants_for_case_generation() -> None:
     document = {"schema": {"oneOf": [{"type": "string", "enum": ["basic"]}, {"type": "integer"}]}}
     schema = resolve_document(document)["schema"]
-    assert schema["type"] == "string"
-    assert schema["x-specvora-selected-oneOf"] == 0
+    assert [choice["type"] for choice in schema["oneOf"]] == ["string", "integer"]
+    assert schema["x-specvora-union-policy"] == "all-variants"
 
 
 @pytest.mark.parametrize(

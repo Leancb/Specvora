@@ -45,9 +45,9 @@ def _resolve_node(node: Any, root: dict[str, Any], stack: tuple[str, ...]) -> An
             choices = resolved_node[keyword]
             if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
                 raise SchemaResolutionError(f"{keyword} must contain at least one schema")
-            metadata = {key: value for key, value in resolved_node.items() if key != keyword}
-            resolved_node = _merge_schema(choices[0], metadata)
-            resolved_node[f"x-specvora-selected-{keyword}"] = 0
+            if any(not isinstance(choice, dict) for choice in choices):
+                raise SchemaResolutionError(f"{keyword} entries must be schemas")
+            resolved_node["x-specvora-union-policy"] = "all-variants"
     return resolved_node
 
 
