@@ -41,6 +41,8 @@ def test_generates_escaped_reviewable_playwright_project(tmp_path: Path) -> None
     assert "Human review and approval are required" in generated
     assert 'qa\\"@example.com' in generated
     assert "eval(" not in generated
+    assert 'new Set(["localhost"])' in generated
+    assert 'route.abort("blockedbyclient")' in generated
     assert validate_web_journeys(target)[0].valid
 
 

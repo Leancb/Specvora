@@ -5,6 +5,7 @@ from pathlib import Path
 from specvora.audit import append_assessment, verify_audit_log
 from specvora.confidence import TestRunResult, assess_release
 from specvora.pipeline import run_analysis
+from specvora.playwright_runner import PlaywrightRunnerRequest, run_generated_playwright
 from specvora.pytest_ingest import PytestIngestRequest, ingest_pytest_report, write_evidence
 from specvora.runner import RunnerRequest, run_generated_tests
 
@@ -49,6 +50,16 @@ def main() -> None:
     run_parser.add_argument("--requirements-total", type=int, required=True)
     run_parser.add_argument("--requirements-covered", type=int, required=True)
     run_parser.add_argument("--critical-marker", action="append", default=[])
+    web_run_parser = commands.add_parser(
+        "run-playwright", help="Run approved generated browser tests with fixed controls"
+    )
+    web_run_parser.add_argument("--workspace-root", type=Path, required=True)
+    web_run_parser.add_argument("--generated-dir", type=Path, required=True)
+    web_run_parser.add_argument("--report-out", type=Path, required=True)
+    web_run_parser.add_argument("--web-base-url", required=True)
+    web_run_parser.add_argument("--allowed-host", action="append", required=True)
+    web_run_parser.add_argument("--approval", required=True)
+    web_run_parser.add_argument("--timeout", type=int, default=120)
     args = parser.parse_args()
     if args.command == "analyze":
         result, files = run_analysis(args.project_file, args.workspace_root)
@@ -82,7 +93,7 @@ def main() -> None:
             "report_sha256": evidence.report_sha256,
             "assessment": assessment.model_dump(mode="json"),
         }
-    else:
+    elif args.command == "run-pytest":
         run = run_generated_tests(
             RunnerRequest(
                 workspace_root=args.workspace_root,
@@ -113,4 +124,17 @@ def main() -> None:
             "evidence": str(evidence_path),
             "assessment": assessment.model_dump(mode="json"),
         }
+    else:
+        run = run_generated_playwright(
+            PlaywrightRunnerRequest(
+                workspace_root=args.workspace_root,
+                generated_dir=args.generated_dir,
+                report_path=args.report_out,
+                web_base_url=args.web_base_url,
+                allowed_hosts=args.allowed_host,
+                approval=args.approval,
+                timeout_seconds=args.timeout,
+            )
+        )
+        output = {"run": run.model_dump(mode="json")}
     print(json.dumps(output, indent=2))
