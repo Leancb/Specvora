@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -33,6 +34,15 @@ def validate_execution(request: ExecutionRequest, workspace_root: Path) -> Path:
     test_file = generated_dir / "test_generated_api.py"
     if not test_file.is_file():
         raise PolicyViolation("Generated test file was not found")
+    gate_file = generated_dir / "quality-gate.json"
+    if not gate_file.is_file():
+        raise PolicyViolation("Generation quality gate was not found")
+    try:
+        gate = json.loads(gate_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise PolicyViolation("Generation quality gate is invalid") from exc
+    if not isinstance(gate, dict) or gate.get("status") != "READY_FOR_HUMAN_APPROVAL":
+        raise PolicyViolation("Generation quality gate blocks execution")
     return test_file
 
 

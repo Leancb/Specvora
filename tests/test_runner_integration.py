@@ -11,6 +11,9 @@ def test_runner_produces_ingestable_real_pytest_report(tmp_path: Path) -> None:
     (generated / "test_generated_api.py").write_text(
         "def test_generated_passes():\n    assert 2 + 2 == 4\n", encoding="utf-8"
     )
+    (generated / "quality-gate.json").write_text(
+        json.dumps({"status": "READY_FOR_HUMAN_APPROVAL"}), encoding="utf-8"
+    )
     report = tmp_path / "project/runs/report.json"
     outcome = run_generated_tests(
         RunnerRequest(

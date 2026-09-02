@@ -1,3 +1,4 @@
+import json
 import subprocess
 from pathlib import Path
 
@@ -11,6 +12,9 @@ def runner_request(tmp_path: Path, **overrides: object) -> RunnerRequest:
     generated.mkdir(parents=True, exist_ok=True)
     (generated / "test_generated_api.py").write_text(
         "def test_ok(): assert True\n", encoding="utf-8"
+    )
+    (generated / "quality-gate.json").write_text(
+        json.dumps({"status": "READY_FOR_HUMAN_APPROVAL"}), encoding="utf-8"
     )
     values = {
         "workspace_root": tmp_path,

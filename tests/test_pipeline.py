@@ -38,6 +38,7 @@ def test_pipeline_generates_traceable_owned_artifacts(tmp_path: Path) -> None:
         "traceability.json",
         "request-cases.json",
         "validation-report.json",
+        "quality-gate.json",
         "test_generated_api.py",
         "github-actions.yml",
     }

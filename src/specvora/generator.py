@@ -4,6 +4,7 @@ from pathlib import Path
 from specvora.case_validation import validate_request_cases
 from specvora.data_cases import generate_request_cases
 from specvora.models import AnalysisResult
+from specvora.quality_gate import evaluate_generation_gate
 
 
 def generate_artifacts(result: AnalysisResult, output_dir: Path) -> list[Path]:
@@ -16,17 +17,18 @@ def generate_artifacts(result: AnalysisResult, output_dir: Path) -> list[Path]:
         for operation in result.operations
         for case in cases_by_operation[operation.operation_id]
     ]
-    validations = [
-        validate_request_cases(operation, cases_by_operation[operation.operation_id]).model_dump(
-            mode="json"
-        )
+    validation_models = [
+        validate_request_cases(operation, cases_by_operation[operation.operation_id])
         for operation in result.operations
     ]
+    validations = [validation.model_dump(mode="json") for validation in validation_models]
+    quality_gate = evaluate_generation_gate(validation_models).model_dump(mode="json")
     files = {
         "quality-plan.json": json.dumps(result.model_dump(mode="json"), indent=2),
         "traceability.json": json.dumps(result.traceability, indent=2),
         "request-cases.json": json.dumps(request_cases, indent=2),
         "validation-report.json": json.dumps(validations, indent=2),
+        "quality-gate.json": json.dumps(quality_gate, indent=2),
         "test_generated_api.py": _render_tests(result),
         "github-actions.yml": _render_workflow(),
     }

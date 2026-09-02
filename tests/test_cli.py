@@ -31,6 +31,7 @@ def test_cli_reports_generated_artifacts(tmp_path: Path, monkeypatch, capsys) ->
 
     payload = json.loads(capsys.readouterr().out)
     assert payload["project_id"] == "health-api"
-    assert len(payload["artifacts"]) == 6
+    assert len(payload["artifacts"]) == 7
     assert any(path.endswith("request-cases.json") for path in payload["artifacts"])
     assert any(path.endswith("validation-report.json") for path in payload["artifacts"])
+    assert any(path.endswith("quality-gate.json") for path in payload["artifacts"])

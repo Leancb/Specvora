@@ -42,6 +42,7 @@ def test_pipeline_writes_validation_report_for_generated_cases(tmp_path: Path) -
     _, files = run_analysis(project_file, tmp_path / "workspaces")
 
     assert "validation-report.json" in {path.name for path in files}
+    assert "quality-gate.json" in {path.name for path in files}
     report = json.loads(
         (tmp_path / "workspaces/users/generated/validation-report.json").read_text()
     )
@@ -53,3 +54,5 @@ def test_pipeline_writes_validation_report_for_generated_cases(tmp_path: Path) -
             "findings": [],
         }
     ]
+    gate = json.loads((tmp_path / "workspaces/users/generated/quality-gate.json").read_text())
+    assert gate["status"] == "READY_FOR_HUMAN_APPROVAL"
