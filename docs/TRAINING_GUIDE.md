@@ -49,10 +49,18 @@ Inspect `request-cases.json` together with `validation-report.json`. Confirm pos
 
 Compare `READY_FOR_HUMAN_APPROVAL`, explicit `APPROVED`, and release-confidence decisions. Demonstrate that a malformed or blocked gate prevents the local runner from starting.
 
+### Lesson 8 — Deterministic Playwright journeys
+
+Run `specvora analyze examples/web_project.json` and compare the declarative journey with
+the generated Playwright plan and TypeScript. Demonstrate that invalid navigation is
+rejected and that generation never launches a browser. Complete
+`docs/training/MODULE_10_LAB.md`.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
 - learners can trace requirement to scenario and generated test;
 - learners can explain each confidence component;
 - learners can detect a modified audit log;
+- learners can explain the boundary between browser-test generation and execution;
 - learners know that release recommendations do not replace accountable people.

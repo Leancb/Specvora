@@ -1,0 +1,21 @@
+{
+  "project_id": "web-demo",
+  "requirements": ["A registered user can sign in"],
+  "openapi_path": "petstore/openapi.yaml",
+  "base_url": "http://localhost:8080",
+  "allowed_hosts": ["localhost"],
+  "web_base_url": "http://localhost:3000",
+  "web_journeys": [
+    {
+      "journey_id": "sign-in",
+      "title": "Registered user signs in",
+      "steps": [
+        {"action": "goto", "path": "/login"},
+        {"action": "fill", "selector": "[name=email]", "value": "qa@example.com"},
+        {"action": "fill", "selector": "[name=password]", "value": "training-only"},
+        {"action": "click", "selector": "button[type=submit]"},
+        {"action": "assert_visible", "selector": "text=Welcome"}
+      ]
+    }
+  ]
+}

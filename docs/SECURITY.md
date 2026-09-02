@@ -7,6 +7,8 @@
 - Deterministic case-validation errors block progression to human approval and execution.
 - A human must provide the exact `APPROVED` decision at execution time.
 - The target host must exactly match an allowlisted hostname.
+- Web journeys use an allowlisted base URL, relative navigation, and fixed actions only.
+- Generated Playwright code cannot contain arbitrary script or `evaluate` actions.
 - Tests must remain inside the resolved workspace and use a fixed Pytest invocation.
 
 ## MVP threat controls

@@ -15,10 +15,11 @@
 - [x] Generate visible cases for every top-level `oneOf` and `anyOf` alternative.
 - [x] Validate generated cases and diagnose ineffective negatives and union overlap.
 - [x] Enforce a deterministic generation gate before human approval and execution.
+- [x] Generate deterministic Playwright journeys behind the same quality boundary.
 
 ## Next modules
 
-1. Playwright journey generation behind the same policy boundary.
+1. Controlled Playwright execution with browser and network confinement.
 2. Optional AI proposals with schema validation and provenance.
 3. Container and network egress isolation.
 4. Multi-project persistence and a human review portal.
