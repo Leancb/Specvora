@@ -4,6 +4,7 @@
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.
 - Artifact generation never implies permission to execute.
+- Deterministic case-validation errors block progression to human approval and execution.
 - A human must provide the exact `APPROVED` decision at execution time.
 - The target host must exactly match an allowlisted hostname.
 - Tests must remain inside the resolved workspace and use a fixed Pytest invocation.

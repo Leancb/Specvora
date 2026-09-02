@@ -14,11 +14,11 @@
 - [x] Run approved local Pytest files with fixed commands, filtered environment, and timeout.
 - [x] Generate visible cases for every top-level `oneOf` and `anyOf` alternative.
 - [x] Validate generated cases and diagnose ineffective negatives and union overlap.
+- [x] Enforce a deterministic generation gate before human approval and execution.
 
 ## Next modules
 
-1. Promote validation findings into an explicit generation quality gate.
-2. Playwright journey generation behind the same policy boundary.
-3. Optional AI proposals with schema validation and provenance.
-4. Container and network egress isolation.
-5. Multi-project persistence and a human review portal.
+1. Playwright journey generation behind the same policy boundary.
+2. Optional AI proposals with schema validation and provenance.
+3. Container and network egress isolation.
+4. Multi-project persistence and a human review portal.

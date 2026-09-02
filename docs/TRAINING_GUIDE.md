@@ -45,6 +45,10 @@ Run `python -m pytest --cov=specvora --cov-report=term-missing -q` and `python -
 
 Inspect `request-cases.json` together with `validation-report.json`. Confirm positive cases satisfy the schema, negatives are rejected, and overlapping `oneOf` alternatives are reported before human approval.
 
+### Lesson 7 — Generation quality gate
+
+Compare `READY_FOR_HUMAN_APPROVAL`, explicit `APPROVED`, and release-confidence decisions. Demonstrate that a malformed or blocked gate prevents the local runner from starting.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
