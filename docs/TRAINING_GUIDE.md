@@ -62,6 +62,12 @@ Trace the fixed browser command, dedicated approval, plan-drift checks, confined
 filtered environment, and page-level host blocking. Complete
 `docs/training/MODULE_11_LAB.md` and distinguish browser routing from OS-level isolation.
 
+### Lesson 10 — Playwright evidence
+
+Normalize a browser report, inspect its SHA-256 evidence, and follow the shared result into
+release confidence and the hash-chained audit. Complete `docs/training/MODULE_12_LAB.md`
+and demonstrate why flaky tests reduce confidence.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
@@ -70,4 +76,5 @@ filtered environment, and page-level host blocking. Complete
 - learners can detect a modified audit log;
 - learners can explain the boundary between browser-test generation and execution;
 - learners can distinguish application-level request blocking from network isolation;
+- learners can trace Playwright results into confidence without granting release authority;
 - learners know that release recommendations do not replace accountable people.

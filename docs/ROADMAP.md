@@ -17,10 +17,11 @@
 - [x] Enforce a deterministic generation gate before human approval and execution.
 - [x] Generate deterministic Playwright journeys behind the same quality boundary.
 - [x] Run approved Playwright journeys with fixed commands and browser request controls.
+- [x] Normalize Playwright evidence and include it in release confidence and audit.
 
 ## Next modules
 
-1. Normalize Playwright evidence and include it in release confidence.
-2. Optional AI proposals with schema validation and provenance.
-3. Container and operating-system network egress isolation.
-4. Multi-project persistence and a human review portal.
+1. Optional AI proposals with schema validation and provenance.
+2. Container and operating-system network egress isolation.
+3. Multi-project persistence and a human review portal.
+4. Signed approval records and combined API/browser release policies.

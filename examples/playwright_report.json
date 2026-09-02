@@ -1,0 +1,26 @@
+{
+  "suites": [
+    {
+      "title": "test_generated_web.spec.ts",
+      "specs": [
+        {
+          "title": "Registered user signs in",
+          "tests": [
+            {
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "status": "expected"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0
+  }
+}

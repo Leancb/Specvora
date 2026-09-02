@@ -25,6 +25,8 @@ uma matriz de rastreabilidade. O modo determinístico funciona sem custos de IA.
 O modo assistido por OpenAI é opcional e nunca executa código proposto sem validação.
 Jornadas web declarativas geram Playwright e podem usar um executor controlado após gate
 determinístico e aprovação humana específica.
+Relatórios Pytest e Playwright são normalizados em evidências com hash antes de alimentar
+o mesmo cálculo explicável de release confidence e o log de auditoria.
 
 ## Início rápido
 

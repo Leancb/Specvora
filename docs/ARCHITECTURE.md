@@ -11,3 +11,7 @@ Playwright journeys also block page requests outside the reviewed host list.
 
 AI assistance remains optional and is deliberately outside the deterministic core.
 Application-level browser controls do not replace future container and OS egress isolation.
+
+Both Pytest and Playwright reports enter source-specific fail-closed normalizers. Each
+normalizer produces hashed evidence and the shared `TestRunResult` contract, allowing one
+deterministic confidence engine and audit chain without pretending the raw formats match.

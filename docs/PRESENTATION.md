@@ -24,7 +24,7 @@ AI proposes. Deterministic policies validate. Humans authorize. Generated code i
 2. Scenario and artifact generation.
 3. Approved and confined execution policy.
 4. Results, audit, and release confidence.
-5. Future Playwright journeys and optional AI proposals.
+5. API and Playwright evidence, audit, and release confidence.
 
 ## Slide 6 — Live demo: analysis
 
@@ -36,7 +36,8 @@ Explain exact host allowlisting, explicit approval, workspace confinement, fixed
 
 ## Slide 8 — Live demo: release confidence
 
-Run `specvora assess examples\petstore_results.json --audit-log workspaces\petstore-demo\runs\audit.jsonl`. Show the score, reasons, and deterministic decision.
+Normalize the provided Pytest or Playwright report. Show its hash, the shared confidence
+inputs, the score, reasons, and deterministic decision.
 
 ## Slide 9 — Audit evidence
 
@@ -48,7 +49,8 @@ Present automated tests, coverage threshold, lint, modular documentation, and Gi
 
 ## Slide 11 — Roadmap
 
-Request-data generation from JSON Schema, real runner result ingestion, Playwright, signed approvals, container isolation, egress control, and multi-project review portal.
+Optional governed AI proposals, signed approvals, container isolation, OS egress control,
+combined API/browser policy, and a multi-project review portal.
 
 ## Slide 12 — Closing
 

@@ -11,6 +11,7 @@
 - Generated Playwright code cannot contain arbitrary script or `evaluate` actions.
 - Browser requests outside the reviewed hostname allowlist are aborted by Playwright routing.
 - Tests must remain inside the resolved workspace and use a fixed runner invocation.
+- Pytest and Playwright reports are size-limited, schema-checked, and hashed before use.
 
 ## MVP threat controls
 
@@ -21,6 +22,7 @@
 - Review drift: the Playwright target and allowlist must match the persisted reviewed plan.
 - Unreviewed AI code: deterministic mode is the default and generated files carry an approval warning.
 - Secret leakage: local environment files and generated workspaces are ignored by Git.
+- Evidence spoofing: report summaries must agree with validated per-test outcomes.
 
 DNS rebinding, container isolation, signed approvals, secret brokering, and operating-system
 network egress enforcement remain post-MVP hardening items. Playwright routing is an
