@@ -8,11 +8,11 @@
 - [x] Enforce human approval, host allowlist, fixed commands, and workspace confinement.
 - [x] Expose deterministic analysis through CLI and FastAPI.
 - [x] Add execution-result audit records and deterministic release-confidence scoring.
-- [ ] Expand request-data generation from JSON Schema.
+- [x] Generate deterministic request cases from a documented JSON Schema subset.
 
 ## Next modules
 
-1. JSON Schema request-data generation and negative boundary cases.
+1. Resolve local OpenAPI `$ref` and add composition/format constraints.
 2. Controlled runner ingestion with normalized Pytest result evidence.
 3. Playwright journey generation behind the same policy boundary.
 4. Optional AI proposals with schema validation and provenance.
