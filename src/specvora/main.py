@@ -3,6 +3,8 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from specvora.audit import append_assessment
+from specvora.confidence import ConfidenceAssessment, TestRunResult, assess_release
 from specvora.pipeline import run_analysis
 
 app = FastAPI(title="Specvora", version="0.1.0")
@@ -11,6 +13,11 @@ app = FastAPI(title="Specvora", version="0.1.0")
 class AnalyzeRequest(BaseModel):
     project_file: Path
     workspace_root: Path = Path("workspaces")
+
+
+class AssessRequest(BaseModel):
+    result: TestRunResult
+    audit_log: Path
 
 
 @app.get("/")
@@ -30,3 +37,13 @@ def analyze_project(request: AnalyzeRequest) -> dict[str, object]:
         "scenarios": len(result.scenarios),
         "artifacts": [str(path) for path in files],
     }
+
+
+@app.post("/assess", response_model=ConfidenceAssessment)
+def assess_results(request: AssessRequest) -> ConfidenceAssessment:
+    try:
+        assessment = assess_release(request.result)
+        append_assessment(request.audit_log, assessment)
+        return assessment
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

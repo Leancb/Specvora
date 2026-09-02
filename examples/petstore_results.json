@@ -1,0 +1,11 @@
+{
+  "project_id": "petstore-demo",
+  "run_id": "demo-run-001",
+  "total": 10,
+  "passed": 9,
+  "failed": 1,
+  "critical_failures": 0,
+  "requirements_total": 5,
+  "requirements_covered": 5,
+  "executed_at": "2026-09-01T12:00:00Z"
+}
