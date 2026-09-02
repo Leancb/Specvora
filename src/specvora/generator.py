@@ -1,14 +1,21 @@
 import json
 from pathlib import Path
 
+from specvora.data_cases import generate_request_cases
 from specvora.models import AnalysisResult
 
 
 def generate_artifacts(result: AnalysisResult, output_dir: Path) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
+    request_cases = [
+        case.model_dump(mode="json")
+        for operation in result.operations
+        for case in generate_request_cases(operation)
+    ]
     files = {
         "quality-plan.json": json.dumps(result.model_dump(mode="json"), indent=2),
         "traceability.json": json.dumps(result.traceability, indent=2),
+        "request-cases.json": json.dumps(request_cases, indent=2),
         "test_generated_api.py": _render_tests(result),
         "github-actions.yml": _render_workflow(),
     }

@@ -36,6 +36,7 @@ def test_pipeline_generates_traceable_owned_artifacts(tmp_path: Path) -> None:
     assert {path.name for path in files} == {
         "quality-plan.json",
         "traceability.json",
+        "request-cases.json",
         "test_generated_api.py",
         "github-actions.yml",
     }

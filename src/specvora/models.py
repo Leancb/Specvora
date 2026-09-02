@@ -20,12 +20,21 @@ class ProjectInput(BaseModel):
         return values
 
 
+class ParameterDefinition(BaseModel):
+    name: str
+    location: Literal["path", "query", "header", "cookie"]
+    required: bool = False
+    schema_definition: dict[str, Any] = Field(default_factory=dict)
+
+
 class Operation(BaseModel):
     operation_id: str
     method: str
     path: str
     success_statuses: list[int]
     required_parameters: list[str] = Field(default_factory=list)
+    parameters: list[ParameterDefinition] = Field(default_factory=list)
+    request_schema: dict[str, Any] | None = None
 
 
 class Scenario(BaseModel):
