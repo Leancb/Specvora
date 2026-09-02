@@ -12,10 +12,11 @@
 - [x] Resolve safe internal `$ref`, basic composition, and common formats.
 - [x] Normalize confined Pytest JSON reports into hashed release evidence.
 - [x] Run approved local Pytest files with fixed commands, filtered environment, and timeout.
+- [x] Generate visible cases for every top-level `oneOf` and `anyOf` alternative.
 
 ## Next modules
 
-1. Generate cases for every compatible union variant and add more constraints.
+1. Validate generated cases against JSON Schema and diagnose union overlap.
 2. Playwright journey generation behind the same policy boundary.
 3. Optional AI proposals with schema validation and provenance.
 4. Container and network egress isolation.
