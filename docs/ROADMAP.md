@@ -11,12 +11,12 @@
 - [x] Generate deterministic request cases from a documented JSON Schema subset.
 - [x] Resolve safe internal `$ref`, basic composition, and common formats.
 - [x] Normalize confined Pytest JSON reports into hashed release evidence.
+- [x] Run approved local Pytest files with fixed commands, filtered environment, and timeout.
 
 ## Next modules
 
-1. Controlled local runner with timeout, environment allowlist, and normalized report output.
-2. Generate cases for every compatible union variant and add more constraints.
-3. Playwright journey generation behind the same policy boundary.
-4. Optional AI proposals with schema validation and provenance.
-5. Container and network egress isolation.
-6. Multi-project persistence and a human review portal.
+1. Generate cases for every compatible union variant and add more constraints.
+2. Playwright journey generation behind the same policy boundary.
+3. Optional AI proposals with schema validation and provenance.
+4. Container and network egress isolation.
+5. Multi-project persistence and a human review portal.
