@@ -16,10 +16,11 @@
 - [x] Validate generated cases and diagnose ineffective negatives and union overlap.
 - [x] Enforce a deterministic generation gate before human approval and execution.
 - [x] Generate deterministic Playwright journeys behind the same quality boundary.
+- [x] Run approved Playwright journeys with fixed commands and browser request controls.
 
 ## Next modules
 
-1. Controlled Playwright execution with browser and network confinement.
+1. Normalize Playwright evidence and include it in release confidence.
 2. Optional AI proposals with schema validation and provenance.
-3. Container and network egress isolation.
+3. Container and operating-system network egress isolation.
 4. Multi-project persistence and a human review portal.

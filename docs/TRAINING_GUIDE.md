@@ -56,6 +56,12 @@ the generated Playwright plan and TypeScript. Demonstrate that invalid navigatio
 rejected and that generation never launches a browser. Complete
 `docs/training/MODULE_10_LAB.md`.
 
+### Lesson 9 — Controlled Playwright execution
+
+Trace the fixed browser command, dedicated approval, plan-drift checks, confined report,
+filtered environment, and page-level host blocking. Complete
+`docs/training/MODULE_11_LAB.md` and distinguish browser routing from OS-level isolation.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
@@ -63,4 +69,5 @@ rejected and that generation never launches a browser. Complete
 - learners can explain each confidence component;
 - learners can detect a modified audit log;
 - learners can explain the boundary between browser-test generation and execution;
+- learners can distinguish application-level request blocking from network isolation;
 - learners know that release recommendations do not replace accountable people.

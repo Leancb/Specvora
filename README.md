@@ -23,6 +23,8 @@ O fluxo atual recebe requisitos em texto e uma especificação OpenAPI, identifi
 operações, gera cenários positivos e negativos, cria testes Pytest/HTTPX e produz
 uma matriz de rastreabilidade. O modo determinístico funciona sem custos de IA.
 O modo assistido por OpenAI é opcional e nunca executa código proposto sem validação.
+Jornadas web declarativas geram Playwright e podem usar um executor controlado após gate
+determinístico e aprovação humana específica.
 
 ## Início rápido
 
