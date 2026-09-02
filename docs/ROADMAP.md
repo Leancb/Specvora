@@ -9,11 +9,12 @@
 - [x] Expose deterministic analysis through CLI and FastAPI.
 - [x] Add execution-result audit records and deterministic release-confidence scoring.
 - [x] Generate deterministic request cases from a documented JSON Schema subset.
+- [x] Resolve safe internal `$ref`, basic composition, and common formats.
 
 ## Next modules
 
-1. Resolve local OpenAPI `$ref` and add composition/format constraints.
-2. Controlled runner ingestion with normalized Pytest result evidence.
+1. Controlled runner ingestion with normalized Pytest result evidence.
+2. Generate cases for every compatible union variant and add more constraints.
 3. Playwright journey generation behind the same policy boundary.
 4. Optional AI proposals with schema validation and provenance.
 5. Container and network egress isolation.
