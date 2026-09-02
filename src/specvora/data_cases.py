@@ -6,6 +6,16 @@ from pydantic import BaseModel, Field
 
 from specvora.models import Operation
 
+FORMAT_EXAMPLES = {
+    "date": "2026-01-01",
+    "date-time": "2026-01-01T00:00:00Z",
+    "email": "qa@example.com",
+    "hostname": "example.test",
+    "ipv4": "192.0.2.1",
+    "uri": "https://example.test/resource",
+    "uuid": "00000000-0000-4000-8000-000000000001",
+}
+
 
 class RequestCase(BaseModel):
     case_id: str
@@ -100,6 +110,8 @@ def example_value(schema: dict[str, Any] | None) -> Any:
     if schema_type == "boolean":
         return True
     if schema_type == "string":
+        if schema.get("format") in FORMAT_EXAMPLES:
+            return FORMAT_EXAMPLES[schema["format"]]
         minimum = max(int(schema.get("minLength", 1)), 1)
         return "x" * minimum
     return None
