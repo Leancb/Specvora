@@ -6,6 +6,7 @@ from pathlib import Path
 from specvora.ai_proposals import DEFAULT_MODEL, propose_scenarios
 from specvora.audit import append_assessment, verify_audit_log
 from specvora.confidence import TestRunResult, assess_release
+from specvora.egress import create_egress_policy, verify_egress_policy
 from specvora.pipeline import run_analysis
 from specvora.playwright_ingest import (
     PlaywrightIngestRequest,
@@ -96,6 +97,20 @@ def main() -> None:
     review_parser.add_argument("--workspace-root", type=Path, required=True)
     review_parser.add_argument("--review-record", type=Path, required=True)
     review_parser.add_argument("--promotion-catalog", type=Path, required=True)
+    egress_parser = commands.add_parser(
+        "create-egress-policy", help="Create an approved default-deny container egress policy"
+    )
+    egress_parser.add_argument("--target-url", required=True)
+    egress_parser.add_argument("--allowed-host", action="append", required=True)
+    egress_parser.add_argument("--approval", required=True)
+    egress_parser.add_argument("--workspace-root", type=Path, required=True)
+    egress_parser.add_argument("--policy-dir", type=Path, required=True)
+    egress_verify_parser = commands.add_parser(
+        "verify-egress-policy", help="Verify an immutable container egress policy"
+    )
+    egress_verify_parser.add_argument("policy_file", type=Path)
+    egress_verify_parser.add_argument("rules_file", type=Path)
+    egress_verify_parser.add_argument("--workspace-root", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "analyze":
         result, files = run_analysis(args.project_file, args.workspace_root)
@@ -201,7 +216,7 @@ def main() -> None:
             model=args.model,
         )
         output = proposal.model_dump(mode="json")
-    else:
+    elif args.command == "review-ai":
         review, catalog = review_and_promote(
             args.project_file,
             args.proposal_file,
@@ -213,5 +228,26 @@ def main() -> None:
         output = {
             "review": review.model_dump(mode="json"),
             "promotion": catalog.model_dump(mode="json"),
+        }
+    elif args.command == "create-egress-policy":
+        policy_path, rules_path, policy = create_egress_policy(
+            args.target_url,
+            args.allowed_host,
+            args.approval,
+            args.policy_dir,
+            args.workspace_root,
+        )
+        output = {
+            "policy": str(policy_path),
+            "rules": str(rules_path),
+            "endpoint": policy.endpoint.model_dump(),
+            "rules_sha256": policy.rules_sha256,
+        }
+    else:
+        output = {
+            "policy": str(args.policy_file),
+            "valid": verify_egress_policy(
+                args.policy_file, args.rules_file, args.workspace_root
+            ),
         }
     print(json.dumps(output, indent=2))
