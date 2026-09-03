@@ -13,6 +13,7 @@ from specvora.playwright_ingest import (
     write_playwright_evidence,
 )
 from specvora.playwright_runner import PlaywrightRunnerRequest, run_generated_playwright
+from specvora.proposal_review import review_and_promote
 from specvora.pytest_ingest import PytestIngestRequest, ingest_pytest_report, write_evidence
 from specvora.runner import RunnerRequest, run_generated_tests
 
@@ -86,6 +87,15 @@ def main() -> None:
     ai_parser.add_argument("--workspace-root", type=Path, default=Path("workspaces"))
     ai_parser.add_argument("--output", type=Path, required=True)
     ai_parser.add_argument("--model", default=os.environ.get("SPECVORA_AI_MODEL", DEFAULT_MODEL))
+    review_parser = commands.add_parser(
+        "review-ai", help="Record human decisions and promote accepted AI proposals"
+    )
+    review_parser.add_argument("project_file", type=Path)
+    review_parser.add_argument("proposal_file", type=Path)
+    review_parser.add_argument("decision_file", type=Path)
+    review_parser.add_argument("--workspace-root", type=Path, required=True)
+    review_parser.add_argument("--review-record", type=Path, required=True)
+    review_parser.add_argument("--promotion-catalog", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "analyze":
         result, files = run_analysis(args.project_file, args.workspace_root)
@@ -183,7 +193,7 @@ def main() -> None:
             "report_sha256": evidence.report_sha256,
             "assessment": assessment.model_dump(mode="json"),
         }
-    else:
+    elif args.command == "propose-ai":
         proposal = propose_scenarios(
             args.project_file,
             args.output,
@@ -191,4 +201,17 @@ def main() -> None:
             model=args.model,
         )
         output = proposal.model_dump(mode="json")
+    else:
+        review, catalog = review_and_promote(
+            args.project_file,
+            args.proposal_file,
+            args.decision_file,
+            args.review_record,
+            args.promotion_catalog,
+            args.workspace_root,
+        )
+        output = {
+            "review": review.model_dump(mode="json"),
+            "promotion": catalog.model_dump(mode="json"),
+        }
     print(json.dumps(output, indent=2))

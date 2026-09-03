@@ -48,9 +48,9 @@ class ProposalFinding(BaseModel):
 
 class AIProposalEnvelope(BaseModel):
     source: Literal["openai-agents"] = "openai-agents"
-    model: str
-    prompt_version: str = PROMPT_VERSION
-    input_sha256: str
+    model: str = Field(min_length=1, max_length=200)
+    prompt_version: Literal["scenario-proposal-v1"] = PROMPT_VERSION
+    input_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     created_at: datetime
     authority: Literal["human-review-required"] = "human-review-required"
     status: Literal["READY_FOR_HUMAN_REVIEW", "BLOCKED"]
@@ -132,6 +132,21 @@ def validate_proposals(batch: AIProposalBatch, result: AnalysisResult) -> list[P
                 )
             )
     return findings
+
+
+def validate_proposal_envelope(
+    envelope: AIProposalEnvelope, project_file: Path
+) -> list[ProposalFinding]:
+    result = _load_analysis(project_file)
+    expected_hash = hashlib.sha256(_proposal_prompt(result).encode()).hexdigest()
+    if envelope.input_sha256 != expected_hash:
+        raise ValueError("AI proposal input hash does not match the current project")
+    return validate_proposals(AIProposalBatch(proposals=envelope.proposals), result)
+
+
+def proposal_input_sha256(project_file: Path) -> str:
+    result = _load_analysis(project_file)
+    return hashlib.sha256(_proposal_prompt(result).encode()).hexdigest()
 
 
 def _openai_provider(prompt: str, model: str) -> AIProposalBatch:

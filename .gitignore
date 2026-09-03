@@ -13,4 +13,7 @@ dist/
 build/
 workspaces/*/generated/
 workspaces/*/runs/
+workspaces/*/proposals/
+workspaces/*/reviews/
+workspaces/*/promoted/
 !workspaces/.gitkeep
