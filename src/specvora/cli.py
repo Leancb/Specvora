@@ -1,7 +1,9 @@
 import argparse
 import json
+import os
 from pathlib import Path
 
+from specvora.ai_proposals import DEFAULT_MODEL, propose_scenarios
 from specvora.audit import append_assessment, verify_audit_log
 from specvora.confidence import TestRunResult, assess_release
 from specvora.pipeline import run_analysis
@@ -77,6 +79,13 @@ def main() -> None:
     web_ingest_parser.add_argument("--critical-marker", action="append", default=[])
     web_ingest_parser.add_argument("--evidence-out", type=Path, required=True)
     web_ingest_parser.add_argument("--audit-log", type=Path, required=True)
+    ai_parser = commands.add_parser(
+        "propose-ai", help="Request schema-validated AI scenario proposals"
+    )
+    ai_parser.add_argument("project_file", type=Path)
+    ai_parser.add_argument("--workspace-root", type=Path, default=Path("workspaces"))
+    ai_parser.add_argument("--output", type=Path, required=True)
+    ai_parser.add_argument("--model", default=os.environ.get("SPECVORA_AI_MODEL", DEFAULT_MODEL))
     args = parser.parse_args()
     if args.command == "analyze":
         result, files = run_analysis(args.project_file, args.workspace_root)
@@ -154,7 +163,7 @@ def main() -> None:
             )
         )
         output = {"run": run.model_dump(mode="json")}
-    else:
+    elif args.command == "ingest-playwright":
         evidence = ingest_playwright_report(
             PlaywrightIngestRequest(
                 project_id=args.project_id,
@@ -174,4 +183,12 @@ def main() -> None:
             "report_sha256": evidence.report_sha256,
             "assessment": assessment.model_dump(mode="json"),
         }
+    else:
+        proposal = propose_scenarios(
+            args.project_file,
+            args.output,
+            args.workspace_root,
+            model=args.model,
+        )
+        output = proposal.model_dump(mode="json")
     print(json.dumps(output, indent=2))
