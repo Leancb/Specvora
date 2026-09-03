@@ -1,0 +1,155 @@
+from __future__ import annotations
+
+import hashlib
+import os
+from pathlib import Path
+
+from pydantic import BaseModel, Field
+
+from specvora.ai_proposals import AIProposalEnvelope, validate_proposal_envelope
+from specvora.models import ProjectInput
+from specvora.proposal_review import HumanReviewInput, review_and_promote
+from specvora.repository import ProjectRepository
+
+
+class ProjectRegistration(BaseModel):
+    project_file: Path
+    workspace_root: Path
+
+
+class ReviewRegistration(BaseModel):
+    review_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{1,62}$")
+    project_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{1,62}$")
+    proposal_file: Path
+
+
+def repository() -> ProjectRepository:
+    return ProjectRepository(Path(os.getenv("SPECVORA_DB_PATH", "workspaces/specvora.db")))
+
+
+def register_project(request: ProjectRegistration) -> dict:
+    project_file = _confined_file(request.project_file, request.workspace_root, "project")
+    project = ProjectInput.model_validate_json(project_file.read_bytes())
+    specification = (project_file.parent / project.openapi_path).resolve()
+    workspace = request.workspace_root.resolve()
+    if not specification.is_relative_to(workspace) or not specification.is_file():
+        raise ValueError("Portal OpenAPI file must exist inside the workspace")
+    return repository().add_project(
+        project.project_id, project_file, workspace
+    )
+
+
+def register_review(request: ReviewRegistration) -> dict:
+    project = repository().get_project(request.project_id)
+    workspace = Path(project["workspace_root"])
+    proposal_file = _confined_file(request.proposal_file, workspace, "proposal")
+    envelope = AIProposalEnvelope.model_validate_json(proposal_file.read_bytes())
+    if envelope.status != "READY_FOR_HUMAN_REVIEW" or envelope.findings:
+        raise ValueError("Only policy-ready AI proposals can enter the review queue")
+    if validate_proposal_envelope(envelope, Path(project["project_file"])):
+        raise ValueError("AI proposal does not pass deterministic project policy")
+    digest = hashlib.sha256(proposal_file.read_bytes()).hexdigest()
+    return repository().add_review(
+        request.review_id, request.project_id, proposal_file, digest
+    )
+
+
+def decide_review(review_id: str, decision: HumanReviewInput) -> dict:
+    store = repository()
+    item = store.get_review(review_id)
+    if item["status"] != "PENDING":
+        raise ValueError("Review is no longer pending")
+    project = store.get_project(item["project_id"])
+    workspace = Path(project["workspace_root"])
+    review_dir = workspace / item["project_id"] / "reviews"
+    promotion_dir = workspace / item["project_id"] / "promoted"
+    decision_path = review_dir / f"{review_id}-decision.json"
+    record_path = review_dir / f"{review_id}-record.json"
+    catalog_path = promotion_dir / f"{review_id}-catalog.json"
+    if decision_path.exists():
+        raise ValueError("Review decision artifact already exists")
+    decision_path.parent.mkdir(parents=True, exist_ok=True)
+    decision_path.write_text(decision.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    try:
+        record, catalog = review_and_promote(
+            Path(project["project_file"]),
+            Path(item["proposal_file"]),
+            decision_path,
+            record_path,
+            catalog_path,
+            workspace,
+        )
+    except Exception:
+        decision_path.unlink(missing_ok=True)
+        raise
+    persisted = store.complete_review(review_id, record_path, catalog_path)
+    return {
+        "review": persisted,
+        "decision": record.model_dump(mode="json"),
+        "promotion": catalog.model_dump(mode="json"),
+    }
+
+
+def review_detail(review_id: str) -> dict:
+    item = repository().get_review(review_id)
+    envelope = AIProposalEnvelope.model_validate_json(Path(item["proposal_file"]).read_bytes())
+    return {"review": item, "proposal": envelope.model_dump(mode="json")}
+
+
+def portal_html() -> str:
+    return """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Specvora Review Portal</title><style>
+body{font:16px system-ui;max-width:1100px;margin:40px auto;padding:0 20px;color:#17202a}
+h1{margin-bottom:4px}.notice{background:#fff4ce;padding:12px;border-left:4px solid #b7791f}
+table{width:100%;border-collapse:collapse;margin-top:24px}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+.PENDING{color:#9c5700}.REVIEWED{color:#217346}code{font-size:13px}</style></head><body>
+<h1>Specvora human review</h1><p>AI proposes. Policies validate. People authorize.</p>
+<p class="notice">Local training portal. Authentication and signing are not implemented.</p>
+<h2>Projects</h2><table id="projects"><tbody></tbody></table>
+<h2>Review queue</h2><table id="reviews"><tbody></tbody></table>
+<script>
+async function load(){
+ const [p,r]=await Promise.all([fetch('/api/projects'),fetch('/api/reviews')]);
+ for(const x of await p.json()) projects.tBodies[0].insertRow().innerText=x.project_id;
+ for(const x of await r.json()){
+  const row=reviews.tBodies[0].insertRow();
+  row.insertCell().innerText=`${x.review_id} | ${x.project_id} | ${x.status}`;
+  if(x.status==='PENDING'){
+   const button=document.createElement('button');button.innerText='Review proposals';
+   button.onclick=()=>decide(x.review_id);row.insertCell().appendChild(button);
+  }
+  row.className=x.status;
+ }
+}
+async function decide(id){
+ const detail=await (await fetch(`/api/reviews/${id}`)).json();
+ const reviewer=prompt('Reviewer full name');if(!reviewer)return;
+ const decisions=[];
+ for(const proposal of detail.proposal.proposals){
+  const choice=prompt(`${proposal.title}: type ACCEPT or REJECT`);
+  if(!['ACCEPT','REJECT'].includes(choice))return alert('Decision cancelled.');
+  const rationale=prompt('Explain this decision');if(!rationale)return;
+  decisions.push({proposal_id:proposal.proposal_id,decision:choice,rationale});
+ }
+ if(!confirm('Record this human decision? This action is immutable.'))return;
+ const response=await fetch(`/api/reviews/${id}/decision`,{method:'POST',headers:{
+  'Content-Type':'application/json'},body:JSON.stringify({reviewer,
+  approval:'APPROVED_PROPOSAL_PROMOTION',decisions})});
+ if(!response.ok)return alert((await response.json()).detail);
+ location.reload();
+}
+load();
+</script>
+</body></html>"""
+
+
+def _confined_file(path: Path, workspace_root: Path, label: str) -> Path:
+    root = workspace_root.resolve()
+    resolved = path.resolve()
+    if not resolved.is_relative_to(root):
+        raise ValueError(f"Portal {label} escapes the workspace")
+    if not resolved.is_file() or resolved.suffix.lower() != ".json":
+        raise ValueError(f"Portal {label} must be an existing JSON file")
+    return resolved
