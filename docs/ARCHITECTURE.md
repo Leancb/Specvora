@@ -32,3 +32,9 @@ default-deny `nftables` ruleset. A Linux container applies that ruleset while it
 `CAP_NET_ADMIN`, then drops identity, privileges, and the complete capability bounding set
 before starting the fixed test command. DNS is not opened inside the runtime; the reviewed
 hostname must be pinned in the container hosts file to the same recorded address.
+
+The local portal adds a durable coordination layer without moving policy authority into the
+UI. SQLite stores registered projects, proposal hashes, and review state. Files remain the
+source artifacts and must be confined to each registered workspace. A portal decision calls
+the same deterministic promotion service as the CLI, then persists links to its immutable
+review record and promotion catalog.

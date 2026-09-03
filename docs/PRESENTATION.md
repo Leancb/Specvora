@@ -53,7 +53,8 @@ Demonstrate the optional AI proposal envelope: typed output, model/prompt proven
 deterministic findings, and `human-review-required`. Then present promotion workflow,
 showing complete disposition, linked hashes, and the non-executable promoted catalog.
 Demonstrate the default-deny container policy, pinned endpoint, hash verification, and
-privilege drop. Present signed approvals and the multi-project portal as next steps.
+privilege drop. Show the durable multi-project queue and human decision portal. Present signed
+approvals and promoted-test generation as next steps.
 
 ## Slide 12 — Closing
 

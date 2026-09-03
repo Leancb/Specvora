@@ -33,6 +33,8 @@ Uma revisão humana completa pode promover apenas o cenário aceito para um cat�
 imutável e não executável, mantendo geração e autorização como fronteiras posteriores.
 Políticas de saída aprovadas podem fixar o destino em IP e porta e ser aplicadas por um
 contêiner Linux com `nftables`, bloqueando por padrão qualquer outra conexão de rede.
+O portal local mantém múltiplos projetos e uma fila durável de revisão em SQLite, permitindo
+que uma pessoa examine propostas e registre decisões imutáveis sem conceder autoridade à IA.
 
 ## Início rápido
 
@@ -45,7 +47,7 @@ Copy-Item .env.example .env
 python -m uvicorn specvora.main:app --reload --port 8100
 ```
 
-Acesse `http://localhost:8100` para o portal ou `http://localhost:8100/docs`
+Acesse `http://localhost:8100/portal` para o portal ou `http://localhost:8100/docs`
 para a API técnica.
 
 ## Demonstração por linha de comando

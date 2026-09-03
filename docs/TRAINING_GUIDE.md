@@ -87,6 +87,12 @@ the container applies them before dropping all capabilities. Complete
 `docs/training/MODULE_15_LAB.md` and explain why the application allowlist and OS firewall
 remain independent controls.
 
+### Lesson 14 — Multi-project human review portal
+
+Register two confined projects, queue a policy-ready proposal, and record a complete human
+decision through the local portal. Complete `docs/training/MODULE_16_LAB.md` and explain why
+SQLite status, a button click, and a model response are not independent release authority.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
@@ -99,4 +105,5 @@ remain independent controls.
 - learners can separate AI proposal quality from deterministic policy and human authority;
 - learners can explain why promotion is neither test generation nor execution approval;
 - learners can distinguish an application allowlist from enforced network egress isolation;
+- learners can trace a portal decision to its immutable review and promotion artifacts;
 - learners know that release recommendations do not replace accountable people.

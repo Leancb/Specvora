@@ -16,6 +16,8 @@
 - AI promotion requires complete human disposition, a dedicated token, and immutable outputs.
 - Isolated egress policy creation requires a distinct approval and pins exact IPs and TCP port.
 - The Linux execution image applies a default-deny `nftables` policy before dropping privileges.
+- Portal project and proposal files must resolve inside their registered workspace.
+- A queued proposal is revalidated before entry and the existing promotion policy handles decisions.
 
 ## MVP threat controls
 
@@ -39,3 +41,6 @@ The application-level runners remain available for local development and are not
 boundary. The isolated profile requires a Linux container runtime with network namespaces,
 `nftables`, and temporary `CAP_NET_ADMIN`; deployments must not use host networking or add other
 capabilities. Signed approvals and secret brokering remain post-MVP hardening items.
+The current portal is intentionally local and has no authentication, authorization roles, or
+CSRF protection. Do not expose it on an untrusted network; production deployment is blocked
+on those controls and signed approval records.
