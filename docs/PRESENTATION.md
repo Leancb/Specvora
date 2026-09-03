@@ -52,7 +52,8 @@ Present automated tests, coverage threshold, lint, modular documentation, and Gi
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,
 deterministic findings, and `human-review-required`. Then present promotion workflow,
 showing complete disposition, linked hashes, and the non-executable promoted catalog.
-Present signed approvals, container isolation, and the multi-project portal as next steps.
+Demonstrate the default-deny container policy, pinned endpoint, hash verification, and
+privilege drop. Present signed approvals and the multi-project portal as next steps.
 
 ## Slide 12 — Closing
 

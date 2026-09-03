@@ -14,6 +14,8 @@
 - Pytest and Playwright reports are size-limited, schema-checked, and hashed before use.
 - AI is opt-in, tool-free, schema-constrained, semantically validated, and proposal-only.
 - AI promotion requires complete human disposition, a dedicated token, and immutable outputs.
+- Isolated egress policy creation requires a distinct approval and pins exact IPs and TCP port.
+- The Linux execution image applies a default-deny `nftables` policy before dropping privileges.
 
 ## MVP threat controls
 
@@ -29,7 +31,11 @@
 - AI overreach: model output cannot enter generated tests or execution without a future human workflow.
 - Review tampering: proposal and decision inputs are SHA-256 bound to each promotion record.
 - Approval confusion: proposal promotion uses a token distinct from API and browser execution.
+- DNS rebinding during an isolated run: DNS is omitted and the reviewed hostname is pinned to
+  the addresses recorded in the immutable policy.
+- Direct network bypass: the container output chain drops traffic not matching the pinned target.
 
-DNS rebinding, container isolation, signed approvals, secret brokering, and operating-system
-network egress enforcement remain post-MVP hardening items. Playwright routing is an
-application-level defense and is not presented as a container or firewall boundary.
+The application-level runners remain available for local development and are not an OS security
+boundary. The isolated profile requires a Linux container runtime with network namespaces,
+`nftables`, and temporary `CAP_NET_ADMIN`; deployments must not use host networking or add other
+capabilities. Signed approvals and secret brokering remain post-MVP hardening items.

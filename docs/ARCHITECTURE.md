@@ -25,3 +25,10 @@ Human promotion is another explicit boundary. A complete decision document is va
 against the policy-ready envelope; both inputs are hashed into an immutable review record,
 and accepted scenario intent enters a separate catalog. The catalog is not executable and
 does not mutate deterministic artifacts.
+
+The isolated execution profile adds a lower network boundary. Specvora resolves the approved
+hostname once, pins the resulting IPv4/IPv6 addresses and TCP port, and emits a hashed
+default-deny `nftables` ruleset. A Linux container applies that ruleset while it still has
+`CAP_NET_ADMIN`, then drops identity, privileges, and the complete capability bounding set
+before starting the fixed test command. DNS is not opened inside the runtime; the reviewed
+hostname must be pinned in the container hosts file to the same recorded address.

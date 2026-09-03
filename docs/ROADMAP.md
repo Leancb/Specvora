@@ -20,10 +20,10 @@
 - [x] Normalize Playwright evidence and include it in release confidence and audit.
 - [x] Add optional structured AI proposals with provenance and deterministic validation.
 - [x] Add human review and immutable promotion for policy-valid AI proposals.
+- [x] Add approved, immutable default-deny policies for container/OS network egress.
 
 ## Next modules
 
-1. Container and operating-system network egress isolation.
-2. Multi-project persistence and a human review portal.
-3. Signed approval records and combined API/browser release policies.
-4. Generate tests from human-promoted scenarios behind a new quality gate.
+1. Multi-project persistence and a human review portal.
+2. Signed approval records and combined API/browser release policies.
+3. Generate tests from human-promoted scenarios behind a new quality gate.

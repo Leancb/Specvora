@@ -31,6 +31,8 @@ O modo opcional de IA propõe cenários em formato estruturado, registra proveni
 submete cada vínculo e status a políticas determinísticas antes da revisão humana.
 Uma revisão humana completa pode promover apenas o cenário aceito para um catálogo
 imutável e não executável, mantendo geração e autorização como fronteiras posteriores.
+Políticas de saída aprovadas podem fixar o destino em IP e porta e ser aplicadas por um
+contêiner Linux com `nftables`, bloqueando por padrão qualquer outra conexão de rede.
 
 ## Início rápido
 
@@ -59,7 +61,8 @@ matriz, testes e workflow do GitHub Actions.
 
 Specvora não deve apontar para produção sem autorização formal. A execução usa
 allowlist de hosts, comandos fixos, timeout e diretórios confinados. Credenciais
-ficam em arquivos ignorados pelo Git. Consulte `docs/SECURITY.md`.
+ficam em arquivos ignorados pelo Git. Para execução hostil, use também o perfil isolado
+descrito em `docs/modules/15_NETWORK_EGRESS_ISOLATION.md`. Consulte `docs/SECURITY.md`.
 
 ## Documentação
 

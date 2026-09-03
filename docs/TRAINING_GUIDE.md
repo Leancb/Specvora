@@ -80,6 +80,13 @@ Review offline AI fixtures, disposition every proposal, and inspect the two inpu
 immutable decision record, and promoted catalog. Complete
 `docs/training/MODULE_14_LAB.md` and identify every authority boundary still remaining.
 
+### Lesson 13 — Container network isolation
+
+Create and verify an approved egress policy, inspect its default-deny rules, and trace how
+the container applies them before dropping all capabilities. Complete
+`docs/training/MODULE_15_LAB.md` and explain why the application allowlist and OS firewall
+remain independent controls.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
@@ -91,4 +98,5 @@ immutable decision record, and promoted catalog. Complete
 - learners can trace Playwright results into confidence without granting release authority;
 - learners can separate AI proposal quality from deterministic policy and human authority;
 - learners can explain why promotion is neither test generation nor execution approval;
+- learners can distinguish an application allowlist from enforced network egress isolation;
 - learners know that release recommendations do not replace accountable people.
