@@ -1,0 +1,16 @@
+{
+  "reviewer": "Leandro do Couto Brum",
+  "approval": "APPROVED_PROPOSAL_PROMOTION",
+  "decisions": [
+    {
+      "proposal_id": "AI-001",
+      "decision": "ACCEPT",
+      "rationale": "Relevant resilience scenario for the maintained quality catalog"
+    },
+    {
+      "proposal_id": "AI-002",
+      "decision": "REJECT",
+      "rationale": "The current API contract does not define this dependency behavior"
+    }
+  ]
+}

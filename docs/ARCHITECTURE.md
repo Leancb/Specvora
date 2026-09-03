@@ -20,3 +20,8 @@ The optional AI proposer sits outside this deterministic path. A single tool-fre
 returns typed scenario metadata. Specvora records model and prompt provenance, applies
 local semantic policy, and stores a proposal-only envelope. It does not merge proposals
 into analysis, generation, execution, or confidence automatically.
+
+Human promotion is another explicit boundary. A complete decision document is validated
+against the policy-ready envelope; both inputs are hashed into an immutable review record,
+and accepted scenario intent enters a separate catalog. The catalog is not executable and
+does not mutate deterministic artifacts.

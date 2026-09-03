@@ -29,6 +29,8 @@ Relatórios Pytest e Playwright são normalizados em evidências com hash antes 
 o mesmo cálculo explicável de release confidence e o log de auditoria.
 O modo opcional de IA propõe cenários em formato estruturado, registra proveniência e
 submete cada vínculo e status a políticas determinísticas antes da revisão humana.
+Uma revisão humana completa pode promover apenas o cenário aceito para um catálogo
+imutável e não executável, mantendo geração e autorização como fronteiras posteriores.
 
 ## Início rápido
 

@@ -19,10 +19,11 @@
 - [x] Run approved Playwright journeys with fixed commands and browser request controls.
 - [x] Normalize Playwright evidence and include it in release confidence and audit.
 - [x] Add optional structured AI proposals with provenance and deterministic validation.
+- [x] Add human review and immutable promotion for policy-valid AI proposals.
 
 ## Next modules
 
-1. Human review and promotion workflow for AI proposals.
-2. Container and operating-system network egress isolation.
-3. Multi-project persistence and a human review portal.
-4. Signed approval records and combined API/browser release policies.
+1. Container and operating-system network egress isolation.
+2. Multi-project persistence and a human review portal.
+3. Signed approval records and combined API/browser release policies.
+4. Generate tests from human-promoted scenarios behind a new quality gate.

@@ -74,6 +74,12 @@ Run an opt-in structured proposal, inspect its provenance, and deliberately prod
 semantic violations through the test fixture. Complete `docs/training/MODULE_13_LAB.md`
 and explain why the model cannot approve, promote, generate, or execute its own output.
 
+### Lesson 12 — Human proposal promotion
+
+Review offline AI fixtures, disposition every proposal, and inspect the two input hashes,
+immutable decision record, and promoted catalog. Complete
+`docs/training/MODULE_14_LAB.md` and identify every authority boundary still remaining.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
@@ -84,4 +90,5 @@ and explain why the model cannot approve, promote, generate, or execute its own 
 - learners can distinguish application-level request blocking from network isolation;
 - learners can trace Playwright results into confidence without granting release authority;
 - learners can separate AI proposal quality from deterministic policy and human authority;
+- learners can explain why promotion is neither test generation nor execution approval;
 - learners know that release recommendations do not replace accountable people.

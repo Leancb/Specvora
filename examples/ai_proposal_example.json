@@ -1,0 +1,30 @@
+{
+  "source": "openai-agents",
+  "model": "training-fixture",
+  "prompt_version": "scenario-proposal-v1",
+  "input_sha256": "aab3dbc8251d1e3ef1426e7f0bad838c7fec7bb20efa6afb61126c434c613e34",
+  "created_at": "2026-09-03T12:00:00Z",
+  "authority": "human-review-required",
+  "status": "READY_FOR_HUMAN_REVIEW",
+  "findings": [],
+  "proposals": [
+    {
+      "proposal_id": "AI-001",
+      "requirement": "Consumers can retrieve a pet by its identifier",
+      "operation_id": "getPet",
+      "kind": "negative",
+      "title": "Rate-limited requests are rejected",
+      "rationale": "Adds resilience coverage for repeated retrieval attempts",
+      "expected_statuses": [429]
+    },
+    {
+      "proposal_id": "AI-002",
+      "requirement": "Consumers can retrieve a pet by its identifier",
+      "operation_id": "getPet",
+      "kind": "negative",
+      "title": "Upstream dependency failure is mapped",
+      "rationale": "Explores a failure not required by the current MVP contract",
+      "expected_statuses": [503]
+    }
+  ]
+}
