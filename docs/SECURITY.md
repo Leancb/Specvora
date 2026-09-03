@@ -12,6 +12,7 @@
 - Browser requests outside the reviewed hostname allowlist are aborted by Playwright routing.
 - Tests must remain inside the resolved workspace and use a fixed runner invocation.
 - Pytest and Playwright reports are size-limited, schema-checked, and hashed before use.
+- AI is opt-in, tool-free, schema-constrained, semantically validated, and proposal-only.
 
 ## MVP threat controls
 
@@ -23,6 +24,8 @@
 - Unreviewed AI code: deterministic mode is the default and generated files carry an approval warning.
 - Secret leakage: local environment files and generated workspaces are ignored by Git.
 - Evidence spoofing: report summaries must agree with validated per-test outcomes.
+- Prompt injection: model input is minimized, treated as data, and cannot directly invoke tools.
+- AI overreach: model output cannot enter generated tests or execution without a future human workflow.
 
 DNS rebinding, container isolation, signed approvals, secret brokering, and operating-system
 network egress enforcement remain post-MVP hardening items. Playwright routing is an

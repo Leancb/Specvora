@@ -18,10 +18,11 @@
 - [x] Generate deterministic Playwright journeys behind the same quality boundary.
 - [x] Run approved Playwright journeys with fixed commands and browser request controls.
 - [x] Normalize Playwright evidence and include it in release confidence and audit.
+- [x] Add optional structured AI proposals with provenance and deterministic validation.
 
 ## Next modules
 
-1. Optional AI proposals with schema validation and provenance.
+1. Human review and promotion workflow for AI proposals.
 2. Container and operating-system network egress isolation.
 3. Multi-project persistence and a human review portal.
 4. Signed approval records and combined API/browser release policies.

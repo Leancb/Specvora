@@ -15,3 +15,8 @@ Application-level browser controls do not replace future container and OS egress
 Both Pytest and Playwright reports enter source-specific fail-closed normalizers. Each
 normalizer produces hashed evidence and the shared `TestRunResult` contract, allowing one
 deterministic confidence engine and audit chain without pretending the raw formats match.
+
+The optional AI proposer sits outside this deterministic path. A single tool-free agent
+returns typed scenario metadata. Specvora records model and prompt provenance, applies
+local semantic policy, and stores a proposal-only envelope. It does not merge proposals
+into analysis, generation, execution, or confidence automatically.

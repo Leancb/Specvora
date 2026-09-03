@@ -27,6 +27,8 @@ Jornadas web declarativas geram Playwright e podem usar um executor controlado a
 determinístico e aprovação humana específica.
 Relatórios Pytest e Playwright são normalizados em evidências com hash antes de alimentar
 o mesmo cálculo explicável de release confidence e o log de auditoria.
+O modo opcional de IA propõe cenários em formato estruturado, registra proveniência e
+submete cada vínculo e status a políticas determinísticas antes da revisão humana.
 
 ## Início rápido
 

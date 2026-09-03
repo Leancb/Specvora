@@ -68,6 +68,12 @@ Normalize a browser report, inspect its SHA-256 evidence, and follow the shared 
 release confidence and the hash-chained audit. Complete `docs/training/MODULE_12_LAB.md`
 and demonstrate why flaky tests reduce confidence.
 
+### Lesson 11 — Governed AI proposals
+
+Run an opt-in structured proposal, inspect its provenance, and deliberately produce
+semantic violations through the test fixture. Complete `docs/training/MODULE_13_LAB.md`
+and explain why the model cannot approve, promote, generate, or execute its own output.
+
 ## Trainer checklist
 
 - learners can distinguish proposal, validation, authorization, and execution;
@@ -77,4 +83,5 @@ and demonstrate why flaky tests reduce confidence.
 - learners can explain the boundary between browser-test generation and execution;
 - learners can distinguish application-level request blocking from network isolation;
 - learners can trace Playwright results into confidence without granting release authority;
+- learners can separate AI proposal quality from deterministic policy and human authority;
 - learners know that release recommendations do not replace accountable people.
