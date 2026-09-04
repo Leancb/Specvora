@@ -1,0 +1,77 @@
+"""Server-owned trust configuration and action-bound approval consumption."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from datetime import UTC, datetime
+from pathlib import Path
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from pydantic import BaseModel
+
+from specvora.signed_approval import SignedApproval, consume_approval
+
+
+def canonical_action(action: dict) -> bytes:
+    return json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+
+
+def authorization_mode() -> str:
+    mode = os.getenv("SPECVORA_AUTH_MODE", "signed")
+    if mode not in {"signed", "local-development"}:
+        raise ValueError("Invalid server authorization mode")
+    return mode
+
+
+def authorize_action(
+    envelope: SignedApproval | None,
+    action: bytes,
+    project_id: str,
+    purpose: str,
+    reviewer: str | None = None,
+) -> str | None:
+    if authorization_mode() == "local-development":
+        return None
+    if envelope is None:
+        raise ValueError("Signed approval is required")
+    key_path = os.getenv("SPECVORA_TRUSTED_PUBLIC_KEY")
+    ledger_path = os.getenv("SPECVORA_APPROVAL_LEDGER")
+    trusted_reviewer = os.getenv("SPECVORA_APPROVER_NAME")
+    if not key_path or not ledger_path or not trusted_reviewer:
+        raise ValueError("Server signing trust configuration is incomplete")
+    if envelope.claims.reviewer != trusted_reviewer or (
+        reviewer is not None and reviewer != trusted_reviewer
+    ):
+        raise ValueError("Reviewer does not match the configured signing identity")
+    if not project_id:
+        raise ValueError("Signed execution requires a project ID")
+    key = Ed25519PublicKey.from_public_bytes(Path(key_path).read_bytes())
+    claims = consume_approval(
+        envelope, action, key, project_id, purpose, datetime.now(UTC), Path(ledger_path)
+    )
+    return str(claims.approval_id)
+
+
+def execution_action(request: BaseModel, kind: str) -> bytes:
+    fields = request.model_dump(mode="json", exclude={"signed_approval"})
+    root = Path(fields["workspace_root"]).resolve()
+    generated = Path(fields["generated_dir"]).resolve()
+    if not generated.is_relative_to(root) or not generated.is_dir():
+        raise ValueError("Execution artifacts escape the workspace or are missing")
+    files = {}
+    for path in sorted(generated.rglob("*")):
+        relative = path.relative_to(generated)
+        if any(part in {"node_modules", "__pycache__", ".pytest_cache"} for part in relative.parts):
+            continue
+        if not path.resolve().is_relative_to(generated):
+            raise ValueError("Execution artifact link escapes the generated directory")
+        if path.is_file():
+            files[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    for name in ("workspace_root", "generated_dir", "report_path"):
+        fields[name] = str(Path(fields[name]).resolve())
+    fields["allowed_hosts"] = sorted(set(fields["allowed_hosts"]))
+    return canonical_action(
+        {"version": "execution-v1", "kind": kind, "request": fields, "files": files}
+    )

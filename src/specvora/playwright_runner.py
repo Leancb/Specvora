@@ -10,12 +10,16 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
+from specvora.authorization import authorize_action, execution_action
 from specvora.playwright import normalized_hosts
 from specvora.policy import PolicyViolation
 from specvora.runner import MAX_OUTPUT_CHARS, RunnerError
+from specvora.signed_approval import SignedApproval
 
 
 class PlaywrightRunnerRequest(BaseModel):
+    project_id: str = ""
+    signed_approval: SignedApproval | None = None
     workspace_root: Path
     generated_dir: Path
     report_path: Path
@@ -26,6 +30,7 @@ class PlaywrightRunnerRequest(BaseModel):
 
 
 class PlaywrightRunnerOutcome(BaseModel):
+    approval_id: str | None = None
     command: list[str]
     exit_code: int
     report_path: Path
@@ -51,6 +56,8 @@ def run_generated_playwright(request: PlaywrightRunnerRequest) -> PlaywrightRunn
         "--config=playwright.config.ts",
         "--reporter=json",
     ]
+    approval_id = authorize_action(request.signed_approval, execution_action(request, "browser"),
+                     request.project_id, "browser-execution")
     started_at = datetime.now(UTC)
     started = monotonic()
     try:
@@ -81,6 +88,7 @@ def run_generated_playwright(request: PlaywrightRunnerRequest) -> PlaywrightRunn
         raise RunnerError(f"Playwright did not produce the required JSON report{suffix}") from exc
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return PlaywrightRunnerOutcome(
+        approval_id=approval_id,
         command=command,
         exit_code=completed.returncode,
         report_path=report_path,

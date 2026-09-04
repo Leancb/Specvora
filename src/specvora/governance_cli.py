@@ -7,7 +7,10 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
+from specvora.authorization import execution_action
 from specvora.combined_release import CombinedReleaseRequest, assess_combined
+from specvora.playwright_runner import PlaywrightRunnerRequest
+from specvora.runner import RunnerRequest
 from specvora.signed_approval import (
     ApprovalClaims,
     SignedApproval,
@@ -28,6 +31,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="specvora-governance")
     parser.add_argument("--workspace-root", type=Path, required=True)
     commands = parser.add_subparsers(dest="command", required=True)
+    prepare = commands.add_parser("prepare-execution")
+    prepare.add_argument("input", type=Path, help="Runner request JSON")
+    prepare.add_argument("--kind", choices=["api", "browser"], required=True)
+    prepare.add_argument("--output", type=Path, required=True)
     combined = commands.add_parser("assess-combined")
     combined.add_argument("input", type=Path)
     combined.add_argument("--output", type=Path, required=True)
@@ -48,6 +55,17 @@ def main() -> None:
             verification.add_argument("--ledger", type=Path, required=True)
     args = parser.parse_args()
     raw = confined(args.input, args.workspace_root).read_bytes()
+    if args.command == "prepare-execution":
+        request_type = RunnerRequest if args.kind == "api" else PlaywrightRunnerRequest
+        request = request_type.model_validate_json(raw)
+        if request.workspace_root.resolve() != args.workspace_root.resolve():
+            raise ValueError("Request workspace differs from the operator workspace")
+        target = confined(args.output, args.workspace_root)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("xb") as stream:
+            stream.write(execution_action(request, args.kind))
+        print(json.dumps({"output": str(target)}))
+        return
     if args.command == "assess-combined":
         result = assess_combined(CombinedReleaseRequest.model_validate_json(raw))
     elif args.command == "sign":

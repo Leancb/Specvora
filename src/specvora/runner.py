@@ -9,12 +9,16 @@ from time import monotonic
 
 from pydantic import BaseModel, Field
 
+from specvora.authorization import authorize_action, execution_action
 from specvora.policy import ExecutionRequest, validate_execution
+from specvora.signed_approval import SignedApproval
 
 MAX_OUTPUT_CHARS = 20_000
 
 
 class RunnerRequest(BaseModel):
+    project_id: str = ""
+    signed_approval: SignedApproval | None = None
     workspace_root: Path
     generated_dir: Path
     report_path: Path
@@ -25,6 +29,7 @@ class RunnerRequest(BaseModel):
 
 
 class RunnerOutcome(BaseModel):
+    approval_id: str | None = None
     command: list[str]
     exit_code: int
     report_path: Path
@@ -61,6 +66,8 @@ def run_generated_tests(request: RunnerRequest) -> RunnerOutcome:
         f"--json-report-file={report_path}",
     ]
     environment = _safe_environment(request.base_url)
+    approval_id = authorize_action(request.signed_approval, execution_action(request, "api"),
+                     request.project_id, "api-execution")
     started_at = datetime.now(UTC)
     started = monotonic()
     try:
@@ -84,6 +91,7 @@ def run_generated_tests(request: RunnerRequest) -> RunnerOutcome:
         suffix = f": {details}" if details else ""
         raise RunnerError(f"Pytest did not produce the required JSON report{suffix}")
     return RunnerOutcome(
+        approval_id=approval_id,
         command=command,
         exit_code=completed.returncode,
         report_path=report_path,

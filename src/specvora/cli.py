@@ -17,6 +17,7 @@ from specvora.playwright_runner import PlaywrightRunnerRequest, run_generated_pl
 from specvora.proposal_review import review_and_promote
 from specvora.pytest_ingest import PytestIngestRequest, ingest_pytest_report, write_evidence
 from specvora.runner import RunnerRequest, run_generated_tests
+from specvora.signed_approval import SignedApproval
 
 
 def main() -> None:
@@ -53,6 +54,7 @@ def main() -> None:
     run_parser.add_argument("--base-url", required=True)
     run_parser.add_argument("--allowed-host", action="append", required=True)
     run_parser.add_argument("--approval", required=True)
+    run_parser.add_argument("--signed-approval", type=Path)
     run_parser.add_argument("--timeout", type=int, default=60)
     run_parser.add_argument("--project-id", required=True)
     run_parser.add_argument("--run-id", required=True)
@@ -68,6 +70,8 @@ def main() -> None:
     web_run_parser.add_argument("--web-base-url", required=True)
     web_run_parser.add_argument("--allowed-host", action="append", required=True)
     web_run_parser.add_argument("--approval", required=True)
+    web_run_parser.add_argument("--signed-approval", type=Path)
+    web_run_parser.add_argument("--project-id", default="")
     web_run_parser.add_argument("--timeout", type=int, default=120)
     web_ingest_parser = commands.add_parser(
         "ingest-playwright", help="Normalize a confined Playwright JSON report"
@@ -147,6 +151,9 @@ def main() -> None:
     elif args.command == "run-pytest":
         run = run_generated_tests(
             RunnerRequest(
+                project_id=args.project_id,
+                signed_approval=(SignedApproval.model_validate_json(args.signed_approval.read_bytes())
+                                 if args.signed_approval else None),
                 workspace_root=args.workspace_root,
                 generated_dir=args.generated_dir,
                 report_path=args.report_out,
@@ -178,6 +185,9 @@ def main() -> None:
     elif args.command == "run-playwright":
         run = run_generated_playwright(
             PlaywrightRunnerRequest(
+                project_id=args.project_id,
+                signed_approval=(SignedApproval.model_validate_json(args.signed_approval.read_bytes())
+                                 if args.signed_approval else None),
                 workspace_root=args.workspace_root,
                 generated_dir=args.generated_dir,
                 report_path=args.report_out,

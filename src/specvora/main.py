@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -10,11 +11,13 @@ from specvora.pipeline import run_analysis
 from specvora.portal import (
     ProjectRegistration,
     ReviewRegistration,
+    SignedReviewDecision,
     decide_review,
     portal_html,
     register_project,
     register_review,
     repository,
+    review_action,
     review_detail,
 )
 from specvora.proposal_review import HumanReviewInput
@@ -81,9 +84,18 @@ def get_review(review_id: str) -> dict:
 
 
 @app.post("/api/reviews/{review_id}/decision")
-def submit_review(review_id: str, decision: HumanReviewInput) -> dict:
+def submit_review(review_id: str, decision: SignedReviewDecision) -> dict:
     try:
         return decide_review(review_id, decision)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/reviews/{review_id}/approval-payload")
+def prepare_review_approval(review_id: str, decision: HumanReviewInput) -> dict:
+    try:
+        payload = review_action(review_id, decision)
+        return {"artifact": payload.decode(), "sha256": hashlib.sha256(payload).hexdigest()}
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

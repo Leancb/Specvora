@@ -7,9 +7,15 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from specvora.ai_proposals import AIProposalEnvelope, validate_proposal_envelope
+from specvora.authorization import authorize_action, canonical_action
 from specvora.models import ProjectInput
 from specvora.proposal_review import HumanReviewInput, review_and_promote
 from specvora.repository import ProjectRepository
+from specvora.signed_approval import SignedApproval
+
+
+class SignedReviewDecision(HumanReviewInput):
+    signed_approval: SignedApproval | None = None
 
 
 class ProjectRegistration(BaseModel):
@@ -54,7 +60,30 @@ def register_review(request: ReviewRegistration) -> dict:
     )
 
 
-def decide_review(review_id: str, decision: HumanReviewInput) -> dict:
+def review_action(review_id: str, decision: HumanReviewInput) -> bytes:
+    store = repository()
+    item = store.get_review(review_id)
+    project = store.get_project(item["project_id"])
+    workspace = Path(project["workspace_root"])
+    source = _confined_file(Path(project["project_file"]), workspace, "project")
+    parsed = ProjectInput.model_validate_json(source.read_bytes())
+    specification = (source.parent / parsed.openapi_path).resolve()
+    if not specification.is_relative_to(workspace.resolve()) or not specification.is_file():
+        raise ValueError("Portal OpenAPI file must exist inside the workspace")
+    proposal = _confined_file(Path(item["proposal_file"]), workspace, "proposal")
+    proposal_hash = hashlib.sha256(proposal.read_bytes()).hexdigest()
+    if proposal_hash != item["proposal_sha256"] or parsed.project_id != item["project_id"]:
+        raise ValueError("Queued project or proposal changed")
+    return canonical_action({
+        "version": "review-action-v1", "review_id": review_id,
+        "project_id": item["project_id"], "proposal_sha256": proposal_hash,
+        "project_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "openapi_sha256": hashlib.sha256(specification.read_bytes()).hexdigest(),
+        "decision": decision.model_dump(mode="json", exclude={"signed_approval"}),
+    })
+
+
+def decide_review(review_id: str, decision: SignedReviewDecision) -> dict:
     store = repository()
     item = store.get_review(review_id)
     if item["status"] != "PENDING":
@@ -66,10 +95,17 @@ def decide_review(review_id: str, decision: HumanReviewInput) -> dict:
     decision_path = review_dir / f"{review_id}-decision.json"
     record_path = review_dir / f"{review_id}-record.json"
     catalog_path = promotion_dir / f"{review_id}-catalog.json"
+    for output in (decision_path, record_path, catalog_path):
+        if not output.resolve().is_relative_to(workspace.resolve()):
+            raise ValueError("Portal output escapes the workspace")
     if decision_path.exists():
         raise ValueError("Review decision artifact already exists")
+    action = review_action(review_id, decision)
+    approval_id = authorize_action(decision.signed_approval, action, item["project_id"],
+                                   "proposal-promotion", decision.reviewer)
     decision_path.parent.mkdir(parents=True, exist_ok=True)
-    decision_path.write_text(decision.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    with decision_path.open("x", encoding="utf-8") as stream:
+        stream.write(decision.model_dump_json(indent=2) + "\n")
     try:
         record, catalog = review_and_promote(
             Path(project["project_file"]),
@@ -84,6 +120,7 @@ def decide_review(review_id: str, decision: HumanReviewInput) -> dict:
         raise
     persisted = store.complete_review(review_id, record_path, catalog_path)
     return {
+        "approval_id": approval_id,
         "review": persisted,
         "decision": record.model_dump(mode="json"),
         "promotion": catalog.model_dump(mode="json"),
@@ -106,7 +143,8 @@ table{width:100%;border-collapse:collapse;margin-top:24px}
 th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
 .PENDING{color:#9c5700}.REVIEWED{color:#217346}code{font-size:13px}</style></head><body>
 <h1>Specvora human review</h1><p>AI proposes. Policies validate. People authorize.</p>
-<p class="notice">Local training portal. Authentication and signing are not implemented.</p>
+<p class="notice">Local training portal. Login authentication is not implemented.</p>
+<p>Signed approvals are required by default. Private keys must remain offline.</p>
 <h2>Projects</h2><table id="projects"><tbody></tbody></table>
 <h2>Review queue</h2><table id="reviews"><tbody></tbody></table>
 <script>
@@ -134,9 +172,21 @@ async function decide(id){
   decisions.push({proposal_id:proposal.proposal_id,decision:choice,rationale});
  }
  if(!confirm('Record this human decision? This action is immutable.'))return;
+ const decision={reviewer,approval:'APPROVED_PROPOSAL_PROMOTION',decisions};
+ const preview=await fetch(`/api/reviews/${id}/approval-payload`,{method:'POST',
+  headers:{'Content-Type':'application/json'},body:JSON.stringify(decision)});
+ if(!preview.ok)return alert((await preview.json()).detail);
+ const payload=await preview.json();
+ const link=document.createElement('a');
+ link.href=URL.createObjectURL(new Blob([payload.artifact],{type:'application/json'}));
+ link.download='review-action.json';link.click();URL.revokeObjectURL(link.href);
+ const signed=prompt('Sign the downloaded action offline, then paste the signed envelope JSON.'+
+  ' Cancel to stop. Empty is accepted only in operator-configured local-development mode.');
+ if(signed===null)return;
+ try{if(signed.trim())decision.signed_approval=JSON.parse(signed);}catch{
+  return alert('Invalid signed envelope JSON');}
  const response=await fetch(`/api/reviews/${id}/decision`,{method:'POST',headers:{
-  'Content-Type':'application/json'},body:JSON.stringify({reviewer,
-  approval:'APPROVED_PROPOSAL_PROMOTION',decisions})});
+  'Content-Type':'application/json'},body:JSON.stringify(decision)});
  if(!response.ok)return alert((await response.json()).detail);
  location.reload();
 }

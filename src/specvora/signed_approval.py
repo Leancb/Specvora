@@ -21,7 +21,7 @@ class ApprovalClaims(BaseModel):
     version: Literal["specvora-approval-v1"] = "specvora-approval-v1"
     approval_id: UUID = Field(default_factory=uuid4)
     project_id: str = Field(min_length=1)
-    purpose: Literal["proposal-promotion", "release-review"]
+    purpose: Literal["proposal-promotion", "release-review", "api-execution", "browser-execution"]
     reviewer: str = Field(min_length=3)
     artifact_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     issued_at: AwareDatetime
