@@ -1,7 +1,14 @@
 # Security
 
+Current Module 18 behavior: portal
+decisions and controlled runners now require signed actions by default. Operator-selected
+`local-development` mode is an explicit compatibility bypass, never a production setting.
+Trust configuration is server-owned. See `modules/18_SIGNED_AUTHORIZATION_INTEGRATION.md`
+for filesystem race limitations, at-most-once consumption, and remaining login/authentication work.
+
 Module 17 adds detached Ed25519 approval verification and a shared consumption ledger for
-operator workflows. It does not retrofit signatures or authentication into the existing portal.
+operator workflows. Module 18 connects signature verification to portal decisions and runners;
+session authentication remains unimplemented.
 Never treat a public key supplied by an untrusted approval itself as trusted; enrollment is an
 operator responsibility. Keep private key files outside the repository and protect ledger backups.
 

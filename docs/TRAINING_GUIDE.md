@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 18: use `docs/training/MODULE_18_LAB.md` to migrate from unsigned labs, export action
+bytes, sign offline and demonstrate rejection of drift and reused authorization.
+
 Module 17: complete `docs/training/MODULE_17_LAB.md` to distinguish trusted-key verification,
 one-time consumption, and combined API/browser recommendations from execution authority.
 

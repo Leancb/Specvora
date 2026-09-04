@@ -58,7 +58,11 @@ approvals and promoted-test generation as next steps.
 
 ## Slide 12 — Closing
 
+Module 18 update: signed authorization is now the default in portal decisions and runners.
+Show an approved action followed by a changed destination being rejected before subprocess launch.
+Login authentication and production identity management remain pending; this is still local-only.
+
 Module 17 demo: show a signed record failing after a one-byte change, then an API-pass/browser-
-critical-failure pair producing BLOCK. Clarify that the current portal is still unsigned and local.
+critical-failure pair producing BLOCK. Module 18 adds enforcement; the portal remains local-only.
 
 Specvora reduces the distance from requirement to defensible release evidence while keeping ownership and authority with the customer.

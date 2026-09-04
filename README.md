@@ -19,6 +19,10 @@ de entrega. A IA propõe; políticas determinísticas validam; pessoas mantêm a
 
 ## MVP 0.1
 
+Módulo 18: decisões no portal e execuções controladas exigem assinatura por padrão.
+Antes de atualizar seu servidor, consulte `docs/training/MODULE_18_LAB.md` para configurar
+chave pública/identidade/ledger ou selecionar explicitamente o modo de laboratório local.
+
 O fluxo atual recebe requisitos em texto e uma especificação OpenAPI, identifica
 operações, gera cenários positivos e negativos, cria testes Pytest/HTTPX e produz
 uma matriz de rastreabilidade. O modo determinístico funciona sem custos de IA.
@@ -69,7 +73,7 @@ descrito em `docs/modules/15_NETWORK_EGRESS_ISOLATION.md`. Consulte `docs/SECURI
 ## Documentação
 
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
-de resultados API/web. É um fluxo de operador: o portal existente ainda não exige assinatura.
+de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
 
 - `docs/PRODUCT.md`: proposta comercial e público-alvo;

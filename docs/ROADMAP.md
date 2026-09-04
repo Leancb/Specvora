@@ -25,11 +25,12 @@
 
 ## Next modules
 
-1. Integrate mandatory signed approvals and authenticated identities into the portal/executors.
+1. Add authenticated portal sessions, role authorization and key lifecycle management.
 2. Generate tests from human-promoted scenarios behind a new quality gate.
 
 ## Module 17 checkpoint
 
 - [x] Operator-only Ed25519 signatures, context/expiry validation and one-time consumption ledger.
 - [x] Combined API/browser recommendation where the worst suite decision prevails.
-- [ ] Mandatory signature enforcement in existing portal and execution workflows.
+- [x] Module 18: default signed authorization in portal decisions and API/browser runners.
+- [ ] Authenticated sessions, revocation/rotation and production identity management.
