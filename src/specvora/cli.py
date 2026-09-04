@@ -14,6 +14,7 @@ from specvora.playwright_ingest import (
     write_playwright_evidence,
 )
 from specvora.playwright_runner import PlaywrightRunnerRequest, run_generated_playwright
+from specvora.promoted_generation import generate_promoted
 from specvora.proposal_review import review_and_promote
 from specvora.pytest_ingest import PytestIngestRequest, ingest_pytest_report, write_evidence
 from specvora.runner import RunnerRequest, run_generated_tests
@@ -115,8 +116,20 @@ def main() -> None:
     egress_verify_parser.add_argument("policy_file", type=Path)
     egress_verify_parser.add_argument("rules_file", type=Path)
     egress_verify_parser.add_argument("--workspace-root", type=Path, required=True)
+    promoted_parser = commands.add_parser(
+        "generate-promoted", help="Generate bound promoted API cases"
+    )
+    promoted_parser.add_argument("project_file", type=Path)
+    for argument in ("proposal", "decision", "review", "catalog", "bindings", "output-dir",
+                     "workspace-root"):
+        promoted_parser.add_argument("--" + argument, type=Path, required=True)
     args = parser.parse_args()
-    if args.command == "analyze":
+    if args.command == "generate-promoted":
+        output = generate_promoted(
+            args.project_file, args.proposal, args.decision, args.review,
+            args.catalog, args.bindings, args.output_dir, args.workspace_root,
+        )
+    elif args.command == "analyze":
         result, files = run_analysis(args.project_file, args.workspace_root)
         output = {
             "project_id": result.project.project_id,

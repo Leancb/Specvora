@@ -20,4 +20,5 @@ workspaces/*/proposals/
 workspaces/*/reviews/
 workspaces/*/promoted/
 workspaces/*/egress/
+workspaces/*/promoted-generated/
 !workspaces/.gitkeep
