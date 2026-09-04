@@ -25,5 +25,11 @@
 
 ## Next modules
 
-1. Signed approval records and combined API/browser release policies.
+1. Integrate mandatory signed approvals and authenticated identities into the portal/executors.
 2. Generate tests from human-promoted scenarios behind a new quality gate.
+
+## Module 17 checkpoint
+
+- [x] Operator-only Ed25519 signatures, context/expiry validation and one-time consumption ledger.
+- [x] Combined API/browser recommendation where the worst suite decision prevails.
+- [ ] Mandatory signature enforcement in existing portal and execution workflows.

@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 17: complete `docs/training/MODULE_17_LAB.md` to distinguish trusted-key verification,
+one-time consumption, and combined API/browser recommendations from execution authority.
+
 - learners can distinguish proposal, validation, authorization, and execution;
 - learners can trace requirement to scenario and generated test;
 - learners can explain each confidence component;

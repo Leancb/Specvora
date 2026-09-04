@@ -68,6 +68,10 @@ descrito em `docs/modules/15_NETWORK_EGRESS_ISOLATION.md`. Consulte `docs/SECURI
 
 ## Documentação
 
+O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
+de resultados API/web. É um fluxo de operador: o portal existente ainda não exige assinatura.
+Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
+
 - `docs/PRODUCT.md`: proposta comercial e público-alvo;
 - `docs/ARCHITECTURE.md`: componentes e fluxo;
 - `docs/SECURITY.md`: modelo de ameaças e controles;

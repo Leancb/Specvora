@@ -1,5 +1,10 @@
 # Security
 
+Module 17 adds detached Ed25519 approval verification and a shared consumption ledger for
+operator workflows. It does not retrofit signatures or authentication into the existing portal.
+Never treat a public key supplied by an untrusted approval itself as trusted; enrollment is an
+operator responsibility. Keep private key files outside the repository and protect ledger backups.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.

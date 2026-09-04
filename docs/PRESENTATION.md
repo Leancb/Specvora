@@ -58,4 +58,7 @@ approvals and promoted-test generation as next steps.
 
 ## Slide 12 — Closing
 
+Module 17 demo: show a signed record failing after a one-byte change, then an API-pass/browser-
+critical-failure pair producing BLOCK. Clarify that the current portal is still unsigned and local.
+
 Specvora reduces the distance from requirement to defensible release evidence while keeping ownership and authority with the customer.
