@@ -26,7 +26,14 @@
 ## Next modules
 
 1. Add authenticated portal sessions, role authorization and key lifecycle management.
-2. Generate tests from human-promoted scenarios behind a new quality gate.
+2. Add controlled fixture adapters for promoted resilience/authentication scenarios.
+
+## Module 19 checkpoint
+
+- [x] Generate Pytest/HTTPX from promoted scenarios with explicit deterministic case bindings.
+- [x] Check provenance consistency, traceability and positive/negative request validity.
+- [x] Block unsupported fixtures and require separate signed execution authorization.
+- [ ] Portal integration and fixture-backed 429/503 test generation.
 
 ## Module 17 checkpoint
 
