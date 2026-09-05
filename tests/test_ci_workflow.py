@@ -20,3 +20,14 @@ def test_ci_plan_is_ready_and_cannot_target_external_hosts():
     assert "X-Specvora-Fixture" in test
     assert "trust_env=False" in test
     assert "ci/module22-plan/* text eol=lf" in Path(".gitattributes").read_text()
+
+
+def test_ci_approval_scripts_use_unique_complete_unexpired_sessions():
+    prepare = Path("scripts/prepare-ci-approval.ps1").read_text(encoding="utf-8")
+    publish = Path("scripts/publish-ci-approval.ps1").read_text(encoding="utf-8")
+    assert 'Join-Path $runtimeRoot "current-session.txt"' in prepare
+    assert 'Join-Path $runtimeRoot "sessions"' in prepare
+    assert 'Join-Path $runtimeRoot "current-session.txt"' in publish
+    assert "Pacote da sessao esta incompleto" in publish
+    assert "$expiresAt -le [DateTimeOffset]::UtcNow" in publish
+    assert "$publicBytes.Length -ne 32" in publish

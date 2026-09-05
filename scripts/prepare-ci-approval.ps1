@@ -10,7 +10,10 @@ param(
 $ErrorActionPreference = "Stop"
 if (-not $ApproveSigning) { throw "Revise ci/module22-plan e use -ApproveSigning." }
 $root = [IO.Path]::GetFullPath($WorkspaceRoot)
-$runtime = Join-Path $root ".specvora-ci"
+$runtimeRoot = Join-Path $root ".specvora-ci"
+$sessionId = "{0}-{1}" -f [DateTimeOffset]::UtcNow.ToString("yyyyMMdd-HHmmss"),
+    ([guid]::NewGuid().ToString("N").Substring(0, 8))
+$runtime = Join-Path (Join-Path $runtimeRoot "sessions") $sessionId
 [IO.Directory]::CreateDirectory($runtime) | Out-Null
 $utf8 = New-Object Text.UTF8Encoding($false)
 $requestPath = Join-Path $runtime "request.json"
@@ -45,5 +48,7 @@ if($LASTEXITCODE -ne 0){throw "Falha ao assinar acao portavel."}
     [Convert]::ToBase64String([IO.File]::ReadAllBytes($PublicKey)),$utf8)
 [IO.File]::WriteAllText((Join-Path $runtime "signed-approval.b64"),
     [Convert]::ToBase64String([IO.File]::ReadAllBytes($signedPath)),$utf8)
+[IO.Directory]::CreateDirectory($runtimeRoot) | Out-Null
+[IO.File]::WriteAllText((Join-Path $runtimeRoot "current-session.txt"),$sessionId,$utf8)
 Write-Host "Pacote efemero criado em $runtime e valido por 30 minutos."
 Write-Host "A chave privada nao foi copiada. Proximo: scripts/publish-ci-approval.ps1."

@@ -17,6 +17,9 @@ cd D:\Specvora
 
 O primeiro script assina localmente a ação portável por 30 minutos. O segundo envia ao
 environment apenas a chave pública e o envelope assinado em base64, sem imprimir valores.
+Cada preparação cria uma sessão nova em `.specvora-ci/sessions/`; portanto, uma tentativa
+anterior não é sobrescrita nem reutilizada. A publicação recusa sessões incompletas ou
+expiradas.
 
 Em seguida, abra **Actions → Governed fixture execution → Run workflow**. Aprove o job no
 environment protegido. Baixe o artifact `specvora-evidence-<run-id>` e confira relatório,
