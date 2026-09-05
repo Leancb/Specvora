@@ -1,0 +1,11 @@
+{
+  "project_id": "petstore-demo",
+  "signed_approval": null,
+  "workspace_root": "REPLACE_WITH_LOCAL_REPOSITORY_ROOT",
+  "generated_dir": "REPLACE_WITH_LOCAL_REPOSITORY_ROOT/ci/module22-plan",
+  "report_path": "REPLACE_WITH_LOCAL_REPOSITORY_ROOT/ci/evidence/pytest-report.json",
+  "base_url": "http://127.0.0.1:8080",
+  "allowed_hosts": ["127.0.0.1"],
+  "approval": "APPROVED",
+  "timeout_seconds": 60
+}

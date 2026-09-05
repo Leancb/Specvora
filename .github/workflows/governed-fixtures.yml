@@ -1,0 +1,101 @@
+name: Governed fixture execution
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: specvora-governed-fixtures
+  cancel-in-progress: false
+
+jobs:
+  governed-fixtures:
+    runs-on: ubuntu-latest
+    environment: specvora-governed
+    timeout-minutes: 10
+    env:
+      SPECVORA_AUTH_MODE: signed
+      SPECVORA_ACTION_PATH_MODE: workspace-relative
+      SPECVORA_APPROVER_NAME: ${{ vars.SPECVORA_CI_APPROVER }}
+      SPECVORA_TRUSTED_PUBLIC_KEY: ${{ github.workspace }}/ci/runtime/public.key
+      SPECVORA_APPROVAL_LEDGER: ${{ github.workspace }}/ci/evidence/approval-ledger.sqlite
+      SPECVORA_BASE_URL: http://127.0.0.1:8080
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install locked project range
+        run: python -m pip install -e ".[dev]"
+      - name: Materialize public trust and one-use approval
+        env:
+          PUBLIC_KEY_B64: ${{ secrets.SPECVORA_CI_PUBLIC_KEY_B64 }}
+          SIGNED_APPROVAL_B64: ${{ secrets.SPECVORA_CI_SIGNED_APPROVAL_B64 }}
+        run: |
+          mkdir -p ci/runtime ci/evidence
+          python - <<'PY'
+          import base64, os
+          from pathlib import Path
+          for env, target in (
+              ("PUBLIC_KEY_B64", "ci/runtime/public.key"),
+              ("SIGNED_APPROVAL_B64", "ci/runtime/signed-approval.json"),
+          ):
+              value = os.environ.get(env, "")
+              if not value:
+                  raise SystemExit(f"Required GitHub secret is empty: {env}")
+              Path(target).write_bytes(base64.b64decode(value, validate=True))
+          PY
+          test "$(wc -c < ci/runtime/public.key)" -eq 32
+      - name: Build exact portable runner request
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          request = {
+              "project_id": "petstore-demo", "signed_approval": None,
+              "workspace_root": str(root),
+              "generated_dir": str(root / "ci/module22-plan"),
+              "report_path": str(root / "ci/evidence/pytest-report.json"),
+              "base_url": "http://127.0.0.1:8080", "allowed_hosts": ["127.0.0.1"],
+              "approval": "APPROVED", "timeout_seconds": 60,
+          }
+          Path("ci/runtime/request.json").write_text(json.dumps(request), encoding="utf-8")
+          PY
+          specvora-governance --workspace-root "$GITHUB_WORKSPACE" prepare-execution \
+            ci/runtime/request.json --kind api --output ci/runtime/action.json
+          specvora-governance --workspace-root "$GITHUB_WORKSPACE" verify \
+            ci/runtime/signed-approval.json --artifact ci/runtime/action.json \
+            --public-key ci/runtime/public.key --project-id petstore-demo --purpose api-execution
+      - name: Start isolated local fixture target
+        run: |
+          python -m uvicorn specvora.fixture_app:app --host 127.0.0.1 --port 8080 &
+          for attempt in $(seq 1 20); do
+            curl --fail --silent http://127.0.0.1:8080/pets/preflight >/dev/null && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: Execute through signed confined runner
+        run: |
+          specvora run-pytest --workspace-root "$GITHUB_WORKSPACE" \
+            --generated-dir "$GITHUB_WORKSPACE/ci/module22-plan" \
+            --report-out "$GITHUB_WORKSPACE/ci/evidence/pytest-report.json" \
+            --evidence-out "$GITHUB_WORKSPACE/ci/evidence/evidence.json" \
+            --audit-log "$GITHUB_WORKSPACE/ci/evidence/audit.jsonl" \
+            --base-url http://127.0.0.1:8080 --allowed-host 127.0.0.1 \
+            --approval APPROVED --signed-approval ci/runtime/signed-approval.json \
+            --timeout 60 --project-id petstore-demo --run-id "ci-${GITHUB_RUN_ID}" \
+            --requirements-total 1 --requirements-covered 1
+      - name: Upload immutable evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: specvora-evidence-${{ github.run_id }}
+          path: ci/evidence/
+          if-no-files-found: error
+          retention-days: 30

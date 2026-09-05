@@ -27,4 +27,7 @@ workspaces/governance/
 workspaces/**/*.jsonl
 /bindings*.json
 /petstore-demo/
+/.specvora-ci/
+/ci/runtime/
+/ci/evidence/
 !workspaces/.gitkeep
