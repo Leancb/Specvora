@@ -41,7 +41,7 @@
 - [x] Generate isolated header-driven 429/503 cases from schema-valid baselines.
 - [x] Provide a local-only deterministic fixture target and safety-negative tests.
 - [x] Integrate fixture selection and plan generation into the local portal.
-- [ ] Run controlled fixtures in isolated CI environments.
+- [x] Run controlled fixtures in an isolated, manually approved CI workflow.
 
 ## Module 21 checkpoint
 
@@ -50,6 +50,14 @@
 - [x] Keep private signing keys and execution outside the portal boundary.
 - [x] Ignore local bindings, decisions, execution sessions and ledgers in Git.
 - [ ] Add authenticated sessions and roles before any non-local deployment.
+
+## Module 22 checkpoint
+
+- [x] Produce stable signed actions across Windows and Linux workspace roots.
+- [x] Keep artifact hashes, target, allowlist and timeout inside the portable signature.
+- [x] Run loopback fixtures through the signed confined runner in manual GitHub Actions.
+- [x] Upload immutable evidence without placing a private key in repository or CI.
+- [ ] Add a durable atomic consumption ledger for cross-run replay prevention.
 
 ## Module 17 checkpoint
 

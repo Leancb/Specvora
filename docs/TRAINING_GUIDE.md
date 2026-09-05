@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 22: use `docs/training/MODULE_22_LAB.md` to prepare a portable approval, run the
+protected manual workflow and explain why an ephemeral ledger is not global replay defense.
+
 Module 21: use `docs/training/MODULE_21_LAB.md` to generate a new immutable plan through
 the portal while keeping execution and private signing keys outside the browser boundary.
 
