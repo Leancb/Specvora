@@ -142,6 +142,7 @@ def test_portal_rejects_files_outside_workspace_and_exposes_local_warning(
     portal = client.get("/portal")
     assert portal.status_code == 200
     assert "Local training portal" in portal.text
+    assert r"join('\n')" in portal.text
 
 
 def test_portal_rejects_openapi_reference_outside_workspace(tmp_path: Path, monkeypatch) -> None:

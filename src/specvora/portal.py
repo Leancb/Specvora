@@ -284,7 +284,7 @@ async function generatePlan(id){
  const bindings=[];
  for(const scenario of detail.scenarios){
   const choices=detail.cases[scenario.operation_id]||[];
-  const caseList=choices.map(x=>x.case_id).join('\n');
+  const caseList=choices.map(x=>x.case_id).join('\\n');
   const case_id=prompt(`${scenario.title}\nChoose one case ID:\n${caseList}`);
   if(!case_id)return alert('Generation cancelled.');
   bindings.push({scenario_id:scenario.scenario_id,case_id});
