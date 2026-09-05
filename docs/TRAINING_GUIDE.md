@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 20: use `docs/training/MODULE_20_LAB.md` to demonstrate explicit 429/503 fixtures,
+valid request baselines, restricted control headers and separate signed execution authority.
+
 Module 19: complete `docs/training/MODULE_19_LAB.md` to bind promoted scenarios to
 deterministic cases, inspect blocked fixtures and distinguish generation from signed execution.
 

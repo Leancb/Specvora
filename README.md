@@ -75,7 +75,11 @@ descrito em `docs/modules/15_NETWORK_EGRESS_ISOLATION.md`. Consulte `docs/SECURI
 O módulo 19 adiciona `specvora generate-promoted`: geração de Pytest/HTTPX a partir
 de cenários promovidos, com vínculos explícitos e gate determinístico. Não executa testes.
 Consulte [o módulo](docs/modules/19_PROMOTED_TEST_GENERATION.md) e
-[o laboratório](docs/training/MODULE_19_LAB.md). Casos 429/503 continuam bloqueados sem fixtures.
+[o laboratório](docs/training/MODULE_19_LAB.md).
+
+O módulo 20 permite casos 429/503 somente quando o contrato documenta a resposta e declara
+uma fixture controlada. Inclui um alvo local de treinamento, sem remover a autorização
+assinada de execução. Consulte `docs/modules/20_CONTROLLED_RESILIENCE_FIXTURES.md`.
 
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.

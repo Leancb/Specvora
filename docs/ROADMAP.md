@@ -26,7 +26,7 @@
 ## Next modules
 
 1. Add authenticated portal sessions, role authorization and key lifecycle management.
-2. Add controlled fixture adapters for promoted resilience/authentication scenarios.
+2. Add controlled fixture adapters for promoted authentication and dependency simulators.
 
 ## Module 19 checkpoint
 
@@ -34,6 +34,13 @@
 - [x] Check provenance consistency, traceability and positive/negative request validity.
 - [x] Block unsupported fixtures and require separate signed execution authorization.
 - [ ] Portal integration and fixture-backed 429/503 test generation.
+
+## Module 20 checkpoint
+
+- [x] Require documented OpenAPI responses and explicit resilience fixture declarations.
+- [x] Generate isolated header-driven 429/503 cases from schema-valid baselines.
+- [x] Provide a local-only deterministic fixture target and safety-negative tests.
+- [ ] Integrate fixture selection into the portal and isolated CI environments.
 
 ## Module 17 checkpoint
 
