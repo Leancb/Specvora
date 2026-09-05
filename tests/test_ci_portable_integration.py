@@ -1,4 +1,5 @@
 import hashlib
+import json
 import shutil
 import socket
 import subprocess
@@ -85,7 +86,9 @@ def test_portable_signed_runner_executes_real_loopback_fixtures(tmp_path, monkey
         outcome = run_generated_tests(request)
         assert outcome.exit_code == 0
         assert report.is_file()
-        assert "2 passed" in outcome.stdout
+        pytest_report = json.loads(report.read_text(encoding="utf-8"))
+        assert pytest_report["summary"]["passed"] == 2
+        assert pytest_report["summary"].get("failed", 0) == 0
     finally:
         server.terminate()
         server.wait(timeout=5)
