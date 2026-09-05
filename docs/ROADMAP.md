@@ -33,14 +33,23 @@
 - [x] Generate Pytest/HTTPX from promoted scenarios with explicit deterministic case bindings.
 - [x] Check provenance consistency, traceability and positive/negative request validity.
 - [x] Block unsupported fixtures and require separate signed execution authorization.
-- [ ] Portal integration and fixture-backed 429/503 test generation.
+- [x] Portal integration and fixture-backed 429/503 test generation.
 
 ## Module 20 checkpoint
 
 - [x] Require documented OpenAPI responses and explicit resilience fixture declarations.
 - [x] Generate isolated header-driven 429/503 cases from schema-valid baselines.
 - [x] Provide a local-only deterministic fixture target and safety-negative tests.
-- [ ] Integrate fixture selection into the portal and isolated CI environments.
+- [x] Integrate fixture selection and plan generation into the local portal.
+- [ ] Run controlled fixtures in isolated CI environments.
+
+## Module 21 checkpoint
+
+- [x] List promoted scenarios and deterministic cases through confined portal APIs.
+- [x] Generate new immutable plans from explicit browser selections.
+- [x] Keep private signing keys and execution outside the portal boundary.
+- [x] Ignore local bindings, decisions, execution sessions and ledgers in Git.
+- [ ] Add authenticated sessions and roles before any non-local deployment.
 
 ## Module 17 checkpoint
 

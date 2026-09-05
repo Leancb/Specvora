@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 21: use `docs/training/MODULE_21_LAB.md` to generate a new immutable plan through
+the portal while keeping execution and private signing keys outside the browser boundary.
+
 Module 20: use `docs/training/MODULE_20_LAB.md` to demonstrate explicit 429/503 fixtures,
 valid request baselines, restricted control headers and separate signed execution authority.
 

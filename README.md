@@ -81,6 +81,9 @@ O módulo 20 permite casos 429/503 somente quando o contrato documenta a respost
 uma fixture controlada. Inclui um alvo local de treinamento, sem remover a autorização
 assinada de execução. Consulte `docs/modules/20_CONTROLLED_RESILIENCE_FIXTURES.md`.
 
+O módulo 21 permite selecionar casos e gerar planos imutáveis no portal local. A interface
+não assina nem executa testes. Consulte `docs/modules/21_PORTAL_PROMOTED_GENERATION.md`.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
