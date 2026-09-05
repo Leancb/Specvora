@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from urllib.parse import quote
 
@@ -125,13 +126,19 @@ def generate_promoted(
                 raise ValueError(
                     "UNDOCUMENTED_STATUS: expected response must be explicit in OpenAPI"
                 )
-            if scenario.kind == "negative" and not set(scenario.expected_statuses) <= {400, 422}:
+            fixture = _fixture_for(operation_doc, scenario.expected_statuses)
+            if (
+                scenario.kind == "negative"
+                and not set(scenario.expected_statuses) <= {400, 422}
+                and fixture is None
+            ):
                 raise ValueError(
                     "FIXTURE_REQUIRED: resilience/auth/rate-limit behavior needs setup"
                 )
             if candidate is None:
                 raise ValueError("MISSING_CASE_BINDING: choose a deterministic case from the plan")
-            request = _materialize(operation, candidate, scenario.kind)
+            request = _materialize(operation, candidate, scenario.kind, fixture is not None)
+            request["headers"] = fixture or {}
             executable.append({**row, **request, "expected": scenario.expected_statuses})
         except ValueError as exc:
             findings.append({"scenario_id": scenario.scenario_id, "message": str(exc)})
@@ -201,7 +208,24 @@ def _errors(schema, value):
     return list(validator(schema, format_checker=FormatChecker()).iter_errors(value))
 
 
-def _materialize(operation, case, kind):
+def _fixture_for(operation_doc, expected_statuses):
+    if len(expected_statuses) != 1:
+        return None
+    fixture = operation_doc.get("x-specvora-test-fixtures", {}).get(str(expected_statuses[0]))
+    if fixture is None:
+        return None
+    if not isinstance(fixture, dict) or set(fixture) != {"kind", "name", "value"}:
+        raise ValueError("INVALID_FIXTURE: expected kind, name and value only")
+    if fixture["kind"] != "request-header" or fixture["name"] != "X-Specvora-Fixture":
+        raise ValueError("INVALID_FIXTURE: only the dedicated fixture header is allowed")
+    if not isinstance(fixture["value"], str) or not re.fullmatch(
+        r"[a-z0-9][a-z0-9-]{0,63}", fixture["value"]
+    ):
+        raise ValueError("INVALID_FIXTURE: unsafe fixture value")
+    return {fixture["name"]: fixture["value"]}
+
+
+def _materialize(operation, case, kind, fixture_backed=False):
     names = [parameter.name for parameter in operation.parameters]
     if len(names) != len(set(names)):
         raise ValueError("UNSUPPORTED_SERIALIZATION: duplicate parameter names")
@@ -234,8 +258,11 @@ def _materialize(operation, case, kind):
         errors.extend(_errors(operation.request_schema, case.body))
     if kind == "positive" and (case.kind != "valid" or errors):
         raise ValueError("INVALID_POSITIVE: case does not satisfy the request schema")
-    if kind == "negative" and (case.kind == "valid" or not errors):
-        raise ValueError("INEFFECTIVE_NEGATIVE: case does not violate the request schema")
+    if kind == "negative":
+        if fixture_backed and (case.kind != "valid" or errors):
+            raise ValueError("INVALID_FIXTURE_BASELINE: fixture requires a valid request case")
+        if not fixture_backed and (case.kind == "valid" or not errors):
+            raise ValueError("INEFFECTIVE_NEGATIVE: case does not violate the request schema")
     return {
         "method": operation.method,
         "path": path,
@@ -261,7 +288,8 @@ CASES = json.loads({encoded})
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["scenario_id"])
 def test_promoted_scenario(case):
-    kwargs = {{"params": case["params"], "timeout": 10, "follow_redirects": False,
+    kwargs = {{"params": case["params"], "headers": case.get("headers", {{}}),
+              "timeout": 10, "follow_redirects": False,
               "trust_env": False}}
     if case["send_json"]:
         kwargs["json"] = case["body"]

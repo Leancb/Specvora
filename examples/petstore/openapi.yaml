@@ -17,3 +17,16 @@ paths:
           description: Pet found
         '404':
           description: Pet not found
+        '429':
+          description: Rate limit fixture response
+        '503':
+          description: Dependency failure fixture response
+      x-specvora-test-fixtures:
+        '429':
+          kind: request-header
+          name: X-Specvora-Fixture
+          value: rate-limit
+        '503':
+          kind: request-header
+          name: X-Specvora-Fixture
+          value: dependency-failure

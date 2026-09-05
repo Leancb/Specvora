@@ -122,6 +122,23 @@ def fixtures(root, status=400):
     return [project, proposal, decision, review, catalog, bindings, root / "generated", root]
 
 
+def enable_fixture(args, status, value):
+    spec_path = args[7] / "openapi.json"
+    spec = json.loads(spec_path.read_text())
+    operation = spec["paths"]["/pets/{id}"]["get"]
+    operation["x-specvora-test-fixtures"] = {
+        str(status): {
+            "kind": "request-header",
+            "name": "X-Specvora-Fixture",
+            "value": value,
+        }
+    }
+    spec_path.write_text(json.dumps(spec))
+    bindings = json.loads(args[5].read_text())
+    bindings["bindings"][1]["case_id"] = "getPet-valid"
+    args[5].write_text(json.dumps(bindings))
+
+
 def test_generates_real_parameterized_cases_without_network(tmp_path, monkeypatch):
     args = fixtures(tmp_path)
     result = generate_promoted(*args)
@@ -172,6 +189,44 @@ def test_rate_limit_requires_fixture_not_fabricated_test(tmp_path):
     assert result["status"] == "BLOCKED"
     assert "FIXTURE_REQUIRED" in result["findings"][0]["message"]
     assert not (args[6] / "test_generated_api.py").exists()
+
+
+def test_declared_fixture_generates_valid_baseline_and_header(tmp_path, monkeypatch):
+    args = fixtures(tmp_path, status=429)
+    enable_fixture(args, 429, "rate-limit")
+    result = generate_promoted(*args)
+    assert result["status"] == "READY_FOR_HUMAN_APPROVAL"
+    case = json.loads((args[6] / "request-cases.json").read_text())[1]
+    assert case["case_id"] == "getPet-valid"
+    assert case["headers"] == {"X-Specvora-Fixture": "rate-limit"}
+
+    module = runpy.run_path(str(args[6] / "test_generated_api.py"))
+
+    def fake_request(method, url, **kwargs):
+        return httpx.Response(200 if not kwargs["headers"] else 429)
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    monkeypatch.setenv("SPECVORA_BASE_URL", "http://localhost:8080")
+    for generated_case in module["CASES"]:
+        module["test_promoted_scenario"](generated_case)
+    assert module["CASES"][1]["headers"] == {"X-Specvora-Fixture": "rate-limit"}
+
+
+@pytest.mark.parametrize(
+    ("fixture", "message"),
+    [
+        ({"kind": "request-header", "name": "Authorization", "value": "bad"}, "dedicated"),
+        ({"kind": "request-header", "name": "X-Specvora-Fixture", "value": "../bad"}, "unsafe"),
+    ],
+)
+def test_unsafe_fixture_definition_blocks(tmp_path, fixture, message):
+    args = fixtures(tmp_path, status=429)
+    spec_path = tmp_path / "openapi.json"
+    spec = json.loads(spec_path.read_text())
+    spec["paths"]["/pets/{id}"]["get"]["x-specvora-test-fixtures"] = {"429": fixture}
+    spec_path.write_text(json.dumps(spec))
+    result = generate_promoted(*args)
+    assert message in result["findings"][0]["message"]
 
 
 def test_missing_binding_lists_available_cases(tmp_path):
