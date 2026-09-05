@@ -69,9 +69,20 @@ def execution_action(request: BaseModel, kind: str) -> bytes:
             raise ValueError("Execution artifact link escapes the generated directory")
         if path.is_file():
             files[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
-    for name in ("workspace_root", "generated_dir", "report_path"):
-        fields[name] = str(Path(fields[name]).resolve())
+    path_mode = os.getenv("SPECVORA_ACTION_PATH_MODE", "absolute")
+    if path_mode not in {"absolute", "workspace-relative"}:
+        raise ValueError("Invalid execution action path mode")
+    report = Path(fields["report_path"]).resolve()
+    if not report.is_relative_to(root):
+        raise ValueError("Execution report escapes the workspace")
+    if path_mode == "workspace-relative":
+        fields["workspace_root"] = "$WORKSPACE"
+        fields["generated_dir"] = generated.relative_to(root).as_posix()
+        fields["report_path"] = report.relative_to(root).as_posix()
+        version = "execution-v2-portable"
+    else:
+        for name in ("workspace_root", "generated_dir", "report_path"):
+            fields[name] = str(Path(fields[name]).resolve())
+        version = "execution-v1"
     fields["allowed_hosts"] = sorted(set(fields["allowed_hosts"]))
-    return canonical_action(
-        {"version": "execution-v1", "kind": kind, "request": fields, "files": files}
-    )
+    return canonical_action({"version": version, "kind": kind, "request": fields, "files": files})

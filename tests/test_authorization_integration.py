@@ -86,6 +86,32 @@ def test_execution_changes_invalidate_signature(tmp_path, monkeypatch, trust, ch
         run_generated_tests(request)
 
 
+def test_portable_execution_action_is_stable_across_workspace_roots(tmp_path, monkeypatch):
+    first = api_request(tmp_path / "windows", project_id="demo")
+    second = api_request(tmp_path / "linux", project_id="demo")
+    monkeypatch.setenv("SPECVORA_ACTION_PATH_MODE", "workspace-relative")
+    first_action = execution_action(first, "api")
+    second_action = execution_action(second, "api")
+    assert first_action == second_action
+    payload = json.loads(first_action)
+    assert payload["version"] == "execution-v2-portable"
+    assert payload["request"]["workspace_root"] == "$WORKSPACE"
+    assert payload["request"]["generated_dir"] == "project/generated"
+    (second.generated_dir / "test_generated_api.py").write_text("changed")
+    assert execution_action(second, "api") != first_action
+
+
+def test_portable_execution_rejects_invalid_mode_and_report_escape(tmp_path, monkeypatch):
+    request = api_request(tmp_path, project_id="demo")
+    monkeypatch.setenv("SPECVORA_ACTION_PATH_MODE", "invalid")
+    with pytest.raises(ValueError, match="path mode"):
+        execution_action(request, "api")
+    monkeypatch.setenv("SPECVORA_ACTION_PATH_MODE", "workspace-relative")
+    request.report_path = tmp_path.parent / "escaped.json"
+    with pytest.raises(ValueError, match="report escapes"):
+        execution_action(request, "api")
+
+
 def test_portal_requires_action_signature_before_writing(tmp_path, monkeypatch, trust):
     project, proposal = workspace(tmp_path)
     monkeypatch.setenv("SPECVORA_DB_PATH", str(tmp_path / "portal.db"))
