@@ -21,4 +21,10 @@ workspaces/*/reviews/
 workspaces/*/promoted/
 workspaces/*/egress/
 workspaces/*/promoted-generated/
+workspaces/*/bindings/
+workspaces/*/executions/
+workspaces/governance/
+workspaces/**/*.jsonl
+/bindings*.json
+/petstore-demo/
 !workspaces/.gitkeep

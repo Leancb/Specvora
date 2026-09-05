@@ -66,9 +66,7 @@ def test_repository_persists_multiple_projects_and_filters_reviews(tmp_path: Pat
     store.add_project("beta", tmp_path / "b.json", tmp_path)
     store.add_review("review-alpha", "alpha", tmp_path / "proposal.json", "a" * 64)
     assert [item["project_id"] for item in store.list_projects()] == ["alpha", "beta"]
-    assert [item["review_id"] for item in store.list_reviews("PENDING")] == [
-        "review-alpha"
-    ]
+    assert [item["review_id"] for item in store.list_reviews("PENDING")] == ["review-alpha"]
 
 
 def test_portal_registers_reviews_and_preserves_human_authority(
@@ -109,20 +107,23 @@ def test_portal_registers_reviews_and_preserves_human_authority(
     assert response.status_code == 200
     assert response.json()["review"]["status"] == "REVIEWED"
     assert response.json()["promotion"]["scenarios"][0]["source_proposal_id"] == "AI-001"
-    assert client.post(
-        "/api/reviews/review-001/decision",
-        json={
-            "reviewer": "Leandro do Couto Brum",
-            "approval": "APPROVED_PROPOSAL_PROMOTION",
-            "decisions": [
-                {
-                    "proposal_id": "AI-001",
-                    "decision": "REJECT",
-                    "rationale": "Not approved",
-                }
-            ],
-        },
-    ).status_code == 400
+    assert (
+        client.post(
+            "/api/reviews/review-001/decision",
+            json={
+                "reviewer": "Leandro do Couto Brum",
+                "approval": "APPROVED_PROPOSAL_PROMOTION",
+                "decisions": [
+                    {
+                        "proposal_id": "AI-001",
+                        "decision": "REJECT",
+                        "rationale": "Not approved",
+                    }
+                ],
+            },
+        ).status_code
+        == 400
+    )
 
 
 def test_portal_rejects_files_outside_workspace_and_exposes_local_warning(
@@ -158,3 +159,63 @@ def test_portal_rejects_openapi_reference_outside_workspace(tmp_path: Path, monk
     )
     assert response.status_code == 400
     assert "OpenAPI" in response.json()["detail"]
+
+
+def test_portal_lists_cases_and_generates_without_execution(tmp_path: Path, monkeypatch) -> None:
+    project_file, proposal_file = workspace(tmp_path)
+    specification = json.loads((tmp_path / "openapi.json").read_text())
+    operation = specification["paths"]["/pets"]["get"]
+    operation["responses"]["429"] = {"description": "controlled rate limit"}
+    operation["x-specvora-test-fixtures"] = {
+        "429": {
+            "kind": "request-header",
+            "name": "X-Specvora-Fixture",
+            "value": "rate-limit",
+        }
+    }
+    (tmp_path / "openapi.json").write_text(json.dumps(specification))
+    monkeypatch.setenv("SPECVORA_DB_PATH", str(tmp_path / "state/specvora.db"))
+    client = TestClient(app)
+    assert (
+        client.post(
+            "/api/projects",
+            json={"project_file": str(project_file), "workspace_root": str(tmp_path)},
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/api/reviews",
+            json={
+                "review_id": "review-portal",
+                "project_id": "portal-demo",
+                "proposal_file": str(proposal_file),
+            },
+        ).status_code
+        == 201
+    )
+    pending = client.get("/api/reviews/review-portal/generation")
+    assert pending.status_code == 400
+    decision = {
+        "reviewer": "Leandro do Couto Brum",
+        "approval": "APPROVED_PROPOSAL_PROMOTION",
+        "decisions": [{"proposal_id": "AI-001", "decision": "ACCEPT", "rationale": "ACCEPT"}],
+    }
+    assert client.post("/api/reviews/review-portal/decision", json=decision).status_code == 200
+    detail = client.get("/api/reviews/review-portal/generation")
+    assert detail.status_code == 200
+    assert detail.json()["cases"]["listPets"][0]["case_id"] == "listPets-valid"
+    request = {
+        "plan_id": "plan-portal-001",
+        "bindings": [{"scenario_id": "PROM-AI-001", "case_id": "listPets-valid"}],
+    }
+    generated = client.post("/api/reviews/review-portal/generation", json=request)
+    assert generated.status_code == 201
+    assert generated.json()["status"] == "READY_FOR_HUMAN_APPROVAL"
+    assert generated.json()["tests_generated"] == 1
+    output = tmp_path / "workspaces/portal-demo/promoted-generated/plan-portal-001"
+    assert (output / "test_generated_api.py").is_file()
+    assert not (output / "pytest-report.json").exists()
+    duplicate = client.post("/api/reviews/review-portal/generation", json=request)
+    assert duplicate.status_code == 400
+    assert "already exists" in duplicate.json()["detail"]

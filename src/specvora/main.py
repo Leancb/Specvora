@@ -9,10 +9,13 @@ from specvora.audit import append_assessment
 from specvora.confidence import ConfidenceAssessment, TestRunResult, assess_release
 from specvora.pipeline import run_analysis
 from specvora.portal import (
+    PortalGenerationRequest,
     ProjectRegistration,
     ReviewRegistration,
     SignedReviewDecision,
     decide_review,
+    generate_review_plan,
+    generation_detail,
     portal_html,
     register_project,
     register_review,
@@ -81,6 +84,22 @@ def get_review(review_id: str) -> dict:
         return review_detail(review_id)
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/reviews/{review_id}/generation")
+def get_review_generation(review_id: str) -> dict:
+    try:
+        return generation_detail(review_id)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/reviews/{review_id}/generation", status_code=201)
+def create_review_generation(review_id: str, request: PortalGenerationRequest) -> dict:
+    try:
+        return generate_review_plan(review_id, request)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/reviews/{review_id}/decision")

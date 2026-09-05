@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from pathlib import Path
 
@@ -8,9 +9,13 @@ from pydantic import BaseModel, Field
 
 from specvora.ai_proposals import AIProposalEnvelope, validate_proposal_envelope
 from specvora.authorization import authorize_action, canonical_action
+from specvora.data_cases import generate_request_cases
 from specvora.models import ProjectInput
+from specvora.openapi import extract_operations, load_openapi
+from specvora.promoted_generation import CaseBinding, GenerationBindings, generate_promoted
 from specvora.proposal_review import HumanReviewInput, review_and_promote
 from specvora.repository import ProjectRepository
+from specvora.schema_resolver import resolve_document
 from specvora.signed_approval import SignedApproval
 
 
@@ -29,6 +34,11 @@ class ReviewRegistration(BaseModel):
     proposal_file: Path
 
 
+class PortalGenerationRequest(BaseModel):
+    plan_id: str = Field(pattern=r"^plan-[a-z0-9][a-z0-9-]{0,55}$")
+    bindings: list[CaseBinding]
+
+
 def repository() -> ProjectRepository:
     return ProjectRepository(Path(os.getenv("SPECVORA_DB_PATH", "workspaces/specvora.db")))
 
@@ -40,9 +50,7 @@ def register_project(request: ProjectRegistration) -> dict:
     workspace = request.workspace_root.resolve()
     if not specification.is_relative_to(workspace) or not specification.is_file():
         raise ValueError("Portal OpenAPI file must exist inside the workspace")
-    return repository().add_project(
-        project.project_id, project_file, workspace
-    )
+    return repository().add_project(project.project_id, project_file, workspace)
 
 
 def register_review(request: ReviewRegistration) -> dict:
@@ -55,9 +63,7 @@ def register_review(request: ReviewRegistration) -> dict:
     if validate_proposal_envelope(envelope, Path(project["project_file"])):
         raise ValueError("AI proposal does not pass deterministic project policy")
     digest = hashlib.sha256(proposal_file.read_bytes()).hexdigest()
-    return repository().add_review(
-        request.review_id, request.project_id, proposal_file, digest
-    )
+    return repository().add_review(request.review_id, request.project_id, proposal_file, digest)
 
 
 def review_action(review_id: str, decision: HumanReviewInput) -> bytes:
@@ -74,13 +80,17 @@ def review_action(review_id: str, decision: HumanReviewInput) -> bytes:
     proposal_hash = hashlib.sha256(proposal.read_bytes()).hexdigest()
     if proposal_hash != item["proposal_sha256"] or parsed.project_id != item["project_id"]:
         raise ValueError("Queued project or proposal changed")
-    return canonical_action({
-        "version": "review-action-v1", "review_id": review_id,
-        "project_id": item["project_id"], "proposal_sha256": proposal_hash,
-        "project_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-        "openapi_sha256": hashlib.sha256(specification.read_bytes()).hexdigest(),
-        "decision": decision.model_dump(mode="json", exclude={"signed_approval"}),
-    })
+    return canonical_action(
+        {
+            "version": "review-action-v1",
+            "review_id": review_id,
+            "project_id": item["project_id"],
+            "proposal_sha256": proposal_hash,
+            "project_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "openapi_sha256": hashlib.sha256(specification.read_bytes()).hexdigest(),
+            "decision": decision.model_dump(mode="json", exclude={"signed_approval"}),
+        }
+    )
 
 
 def decide_review(review_id: str, decision: SignedReviewDecision) -> dict:
@@ -101,8 +111,13 @@ def decide_review(review_id: str, decision: SignedReviewDecision) -> dict:
     if decision_path.exists():
         raise ValueError("Review decision artifact already exists")
     action = review_action(review_id, decision)
-    approval_id = authorize_action(decision.signed_approval, action, item["project_id"],
-                                   "proposal-promotion", decision.reviewer)
+    approval_id = authorize_action(
+        decision.signed_approval,
+        action,
+        item["project_id"],
+        "proposal-promotion",
+        decision.reviewer,
+    )
     decision_path.parent.mkdir(parents=True, exist_ok=True)
     with decision_path.open("x", encoding="utf-8") as stream:
         stream.write(decision.model_dump_json(indent=2) + "\n")
@@ -133,6 +148,74 @@ def review_detail(review_id: str) -> dict:
     return {"review": item, "proposal": envelope.model_dump(mode="json")}
 
 
+def generation_detail(review_id: str) -> dict:
+    item = repository().get_review(review_id)
+    if item["status"] != "REVIEWED" or not item["promotion_catalog"]:
+        raise ValueError("Only reviewed promotions can generate tests")
+    project = repository().get_project(item["project_id"])
+    workspace = Path(project["workspace_root"]).resolve()
+    project_file = _confined_file(Path(project["project_file"]), workspace, "project")
+    parsed = ProjectInput.model_validate_json(project_file.read_bytes())
+    specification = (project_file.parent / parsed.openapi_path).resolve()
+    if not specification.is_relative_to(workspace) or not specification.is_file():
+        raise ValueError("Portal OpenAPI file must exist inside the workspace")
+    document = resolve_document(load_openapi(specification))
+    cases = {
+        operation.operation_id: [
+            case.model_dump(mode="json") for case in generate_request_cases(operation)
+        ]
+        for operation in extract_operations(document)
+    }
+    catalog = Path(item["promotion_catalog"])
+    catalog_data = json.loads(_confined_file(catalog, workspace, "catalog").read_text())
+    plan_root = workspace / "workspaces" / item["project_id"] / "promoted-generated"
+    plans = sorted(path.name for path in plan_root.glob("plan-*") if path.is_dir())
+    return {
+        "review_id": review_id,
+        "scenarios": catalog_data["scenarios"],
+        "cases": cases,
+        "plans": plans,
+    }
+
+
+def generate_review_plan(review_id: str, request: PortalGenerationRequest) -> dict:
+    store = repository()
+    item = store.get_review(review_id)
+    if item["status"] != "REVIEWED" or not item["review_record"] or not item["promotion_catalog"]:
+        raise ValueError("Only reviewed promotions can generate tests")
+    project = store.get_project(item["project_id"])
+    workspace = Path(project["workspace_root"]).resolve()
+    project_workspace = workspace / "workspaces" / item["project_id"]
+    output = project_workspace / "promoted-generated" / request.plan_id
+    binding_dir = project_workspace / "bindings"
+    binding_file = binding_dir / f"{request.plan_id}.json"
+    if output.exists() or binding_file.exists():
+        raise ValueError("Plan ID already exists; choose a new plan ID")
+    for path in (output, binding_file):
+        if not path.resolve().is_relative_to(workspace):
+            raise ValueError("Portal generation output escapes the workspace")
+    binding_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        with binding_file.open("x", encoding="utf-8", newline="\n") as stream:
+            stream.write(
+                GenerationBindings(bindings=request.bindings).model_dump_json(indent=2) + "\n"
+            )
+        return generate_promoted(
+            Path(project["project_file"]),
+            Path(item["proposal_file"]),
+            workspace / item["project_id"] / "reviews" / f"{review_id}-decision.json",
+            Path(item["review_record"]),
+            Path(item["promotion_catalog"]),
+            binding_file,
+            output,
+            workspace,
+        )
+    except Exception:
+        if not output.exists():
+            binding_file.unlink(missing_ok=True)
+        raise
+
+
 def portal_html() -> str:
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -157,7 +240,8 @@ async function load(){
   if(x.status==='PENDING'){
    const button=document.createElement('button');button.innerText='Review proposals';
    button.onclick=()=>decide(x.review_id);row.insertCell().appendChild(button);
-  }
+  }else{const button=document.createElement('button');button.innerText='Generate test plan';
+   button.onclick=()=>generatePlan(x.review_id);row.insertCell().appendChild(button);}
   row.className=x.status;
  }
 }
@@ -188,6 +272,28 @@ async function decide(id){
  const response=await fetch(`/api/reviews/${id}/decision`,{method:'POST',headers:{
   'Content-Type':'application/json'},body:JSON.stringify(decision)});
  if(!response.ok)return alert((await response.json()).detail);
+ location.reload();
+}
+async function generatePlan(id){
+ const detailResponse=await fetch(`/api/reviews/${id}/generation`);
+ if(!detailResponse.ok)return alert((await detailResponse.json()).detail);
+ const detail=await detailResponse.json();
+ const suggested=`plan-portal-${String(detail.plans.length+1).padStart(3,'0')}`;
+ const plan_id=prompt('New plan ID (existing plans are never overwritten)',suggested);
+ if(!plan_id)return;
+ const bindings=[];
+ for(const scenario of detail.scenarios){
+  const choices=detail.cases[scenario.operation_id]||[];
+  const caseList=choices.map(x=>x.case_id).join('\n');
+  const case_id=prompt(`${scenario.title}\nChoose one case ID:\n${caseList}`);
+  if(!case_id)return alert('Generation cancelled.');
+  bindings.push({scenario_id:scenario.scenario_id,case_id});
+ }
+ if(!confirm('Generate artifacts only? No tests will execute.'))return;
+ const response=await fetch(`/api/reviews/${id}/generation`,{method:'POST',headers:{
+  'Content-Type':'application/json'},body:JSON.stringify({plan_id,bindings})});
+ const result=await response.json();if(!response.ok)return alert(result.detail);
+ alert(`Plan ${result.status}: ${result.output_dir}\nTests generated: ${result.tests_generated}`);
  location.reload();
 }
 load();
