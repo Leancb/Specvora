@@ -314,7 +314,10 @@ CASES = json.loads({encoded})
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["scenario_id"])
 def test_promoted_scenario(case):
-    kwargs = {{"params": case["params"], "headers": case.get("headers", {{}}),
+    headers = dict(case.get("headers", {{}}))
+    if authorization := os.environ.get("SPECVORA_RUNTIME_AUTHORIZATION"):
+        headers["Authorization"] = authorization
+    kwargs = {{"params": case["params"], "headers": headers,
               "timeout": 10, "follow_redirects": False,
               "trust_env": False}}
     if case["send_json"]:

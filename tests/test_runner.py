@@ -70,3 +70,47 @@ def test_runner_reports_timeout(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(subprocess, "run", timeout)
     with pytest.raises(RunnerError, match="timed out"):
         run_generated_tests(runner_request(tmp_path, timeout_seconds=1))
+
+
+def test_runner_resolves_referenced_credential_only_into_child_environment(
+    tmp_path: Path, monkeypatch
+) -> None:
+    request = runner_request(tmp_path, credential_ref={"alias": "staging-api"})
+    secret = "operator-owned-secret-value"
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured.update(kwargs)
+        request.report_path.parent.mkdir(parents=True, exist_ok=True)
+        request.report_path.write_text('{"tests": []}', encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout=f"token={secret}", stderr="")
+
+    monkeypatch.setenv("SPECVORA_CREDENTIAL_STAGING_API", secret)
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    outcome = run_generated_tests(request)
+    assert captured["env"]["SPECVORA_RUNTIME_AUTHORIZATION"] == f"Bearer {secret}"
+    assert secret not in outcome.stdout
+    assert "[REDACTED]" in outcome.stdout
+    assert secret not in request.model_dump_json()
+
+
+def test_runner_fails_before_subprocess_for_missing_or_invalid_credential(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: pytest.fail("Must not execute"))
+    request = runner_request(tmp_path, credential_ref={"alias": "staging-api"})
+    with pytest.raises(RuntimeError, match="unavailable"):
+        run_generated_tests(request)
+    monkeypatch.setenv("SPECVORA_CREDENTIAL_STAGING_API", "short")
+    with pytest.raises(RuntimeError, match="invalid"):
+        run_generated_tests(request)
+
+
+def test_credential_alias_is_bound_into_execution_action(tmp_path: Path) -> None:
+    from specvora.authorization import execution_action
+    from specvora.credential_broker import CredentialReference
+
+    first = runner_request(tmp_path, credential_ref={"alias": "staging-api"})
+    action = execution_action(first, "api")
+    first.credential_ref = CredentialReference(alias="other-api")
+    assert execution_action(first, "api") != action

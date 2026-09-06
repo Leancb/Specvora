@@ -66,7 +66,11 @@ CASES = {json.dumps(cases, indent=2)}
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["id"])
 def test_documented_success(case):
     base_url = os.environ["SPECVORA_BASE_URL"]
-    response = httpx.request(case["method"], base_url.rstrip("/") + case["path"], timeout=10)
+    headers = {{}}
+    if authorization := os.environ.get("SPECVORA_RUNTIME_AUTHORIZATION"):
+        headers["Authorization"] = authorization
+    response = httpx.request(case["method"], base_url.rstrip("/") + case["path"],
+                             headers=headers, timeout=10, trust_env=False)
     assert response.status_code in case["expected"]
 '''
 

@@ -10,6 +10,11 @@ from time import monotonic
 from pydantic import BaseModel, Field
 
 from specvora.authorization import authorize_action, execution_action
+from specvora.credential_broker import (
+    CredentialReference,
+    redact_secret,
+    resolve_bearer_credential,
+)
 from specvora.policy import ExecutionRequest, validate_execution
 from specvora.signed_approval import SignedApproval
 
@@ -26,6 +31,7 @@ class RunnerRequest(BaseModel):
     allowed_hosts: list[str] = Field(min_length=1)
     approval: str
     timeout_seconds: int = Field(default=60, ge=1, le=300)
+    credential_ref: CredentialReference | None = None
 
 
 class RunnerOutcome(BaseModel):
@@ -65,7 +71,10 @@ def run_generated_tests(request: RunnerRequest) -> RunnerOutcome:
         "--json-report",
         f"--json-report-file={report_path}",
     ]
-    environment = _safe_environment(request.base_url)
+    credential = (
+        resolve_bearer_credential(request.credential_ref) if request.credential_ref else None
+    )
+    environment = _safe_environment(request.base_url, credential)
     approval_id = authorize_action(request.signed_approval, execution_action(request, "api"),
                      request.project_id, "api-execution")
     started_at = datetime.now(UTC)
@@ -87,7 +96,7 @@ def run_generated_tests(request: RunnerRequest) -> RunnerOutcome:
         ) from exc
     duration = monotonic() - started
     if not report_path.is_file():
-        details = _bounded(completed.stderr or completed.stdout).strip()
+        details = _bounded(redact_secret(completed.stderr or completed.stdout, credential)).strip()
         suffix = f": {details}" if details else ""
         raise RunnerError(f"Pytest did not produce the required JSON report{suffix}")
     return RunnerOutcome(
@@ -95,8 +104,8 @@ def run_generated_tests(request: RunnerRequest) -> RunnerOutcome:
         command=command,
         exit_code=completed.returncode,
         report_path=report_path,
-        stdout=_bounded(completed.stdout),
-        stderr=_bounded(completed.stderr),
+        stdout=_bounded(redact_secret(completed.stdout, credential)),
+        stderr=_bounded(redact_secret(completed.stderr, credential)),
         duration_seconds=duration,
         started_at=started_at,
     )
@@ -110,12 +119,14 @@ def _confined_report_path(report_path: Path, workspace_root: Path) -> Path:
     return resolved
 
 
-def _safe_environment(base_url: str) -> dict[str, str]:
+def _safe_environment(base_url: str, credential: str | None = None) -> dict[str, str]:
     environment = {
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUNBUFFERED": "1",
         "SPECVORA_BASE_URL": base_url,
     }
+    if credential:
+        environment["SPECVORA_RUNTIME_AUTHORIZATION"] = f"Bearer {credential}"
     for name in ("APPDATA", "LOCALAPPDATA", "PATH", "SYSTEMROOT", "TEMP", "TMP"):
         if value := os.environ.get(name):
             environment[name] = value

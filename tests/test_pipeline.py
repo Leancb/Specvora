@@ -46,6 +46,9 @@ def test_pipeline_generates_traceable_owned_artifacts(tmp_path: Path) -> None:
         "Review and approve"
         in (tmp_path / "workspaces/petstore/generated/test_generated_api.py").read_text()
     )
+    generated = (tmp_path / "workspaces/petstore/generated/test_generated_api.py").read_text()
+    assert "SPECVORA_RUNTIME_AUTHORIZATION" in generated
+    assert "trust_env=False" in generated
 
 
 def test_pipeline_rejects_non_openapi_document(tmp_path: Path) -> None:

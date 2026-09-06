@@ -6,6 +6,7 @@ from pathlib import Path
 from specvora.ai_proposals import DEFAULT_MODEL, propose_scenarios
 from specvora.audit import append_assessment, verify_audit_log
 from specvora.confidence import TestRunResult, assess_release
+from specvora.credential_broker import CredentialReference
 from specvora.egress import create_egress_policy, verify_egress_policy
 from specvora.pipeline import run_analysis
 from specvora.playwright_ingest import (
@@ -62,6 +63,7 @@ def main() -> None:
     run_parser.add_argument("--requirements-total", type=int, required=True)
     run_parser.add_argument("--requirements-covered", type=int, required=True)
     run_parser.add_argument("--critical-marker", action="append", default=[])
+    run_parser.add_argument("--credential-alias")
     web_run_parser = commands.add_parser(
         "run-playwright", help="Run approved generated browser tests with fixed controls"
     )
@@ -174,6 +176,11 @@ def main() -> None:
                 allowed_hosts=args.allowed_host,
                 approval=args.approval,
                 timeout_seconds=args.timeout,
+                credential_ref=(
+                    CredentialReference(alias=args.credential_alias)
+                    if args.credential_alias
+                    else None
+                ),
             )
         )
         evidence = ingest_pytest_report(
