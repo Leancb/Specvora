@@ -79,6 +79,10 @@ Module 31 demo: run the dedicated state service on loopback, reject an unauthent
 request, complete a session lifecycle and race the same MFA counter. Explain that this verifies
 the service contract and single-host transaction, not a production deployment.
 
+Module 32 demo: overlap old and new hashed trust entries, authenticate with both, then expire the
+old entry without changing application code. Show that the trust file contains no plaintext
+bearer and distinguish controlled rotation from workload identity.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

@@ -27,7 +27,7 @@
 
 1. Add external identity federation and phishing-resistant MFA.
 2. Move the centralized portal state service to an operated datastore and workload identity.
-3. Add a managed-secret provider with workload identity and auditable short-lived leases.
+3. Replace rotating bearer trust with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
 
@@ -135,6 +135,14 @@
 - [x] Preserve atomic MFA claims and revocable sessions through transactional SQLite.
 - [x] Verify concurrent claims, lifecycle behavior and fail-closed configuration.
 - [ ] Replace the training bearer and SQLite storage before production deployment.
+
+## Module 32 checkpoint
+
+- [x] Authenticate against strict, time-bounded SHA-256 trust entries.
+- [x] Support overlapping validity windows for controlled credential rotation.
+- [x] Keep plaintext bearers out of the trust file and failure responses.
+- [x] Fail closed for malformed, oversized, unreadable or temporally invalid trust files.
+- [ ] Replace bearer distribution with managed workload identity and auditable leases.
 
 ## Module 17 checkpoint
 

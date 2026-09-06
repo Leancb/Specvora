@@ -107,6 +107,9 @@ replay rejection and the boundary between transactional local state and distribu
 Module 27: use `docs/training/MODULE_27_LAB.md` to enroll TOTP, reject password-only and replayed
 logins, revoke old sessions and identify why local seed storage is not production federation.
 
+Module 32: use `docs/training/MODULE_32_LAB.md` to rehearse overlapping service-credential
+rotation while keeping plaintext bearers outside source control and durable evidence.
+
 Module 31: use `docs/training/MODULE_31_LAB.md` to operate the central state contract on
 loopback, verify atomic MFA claims and explain which controls remain deployment responsibilities.
 

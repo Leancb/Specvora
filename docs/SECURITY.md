@@ -101,3 +101,6 @@ operational identity lifecycle.
 The central state service bearer is a local integration credential, not workload identity. Its
 SQLite backend preserves atomicity on one host only; production requires TLS, tenant isolation,
 managed rotation, availability controls and an operated transactional datastore.
+The optional state-service trust file stores only time-bounded SHA-256 digests and supports
+overlap during rotation. Protect its integrity and distribution; it does not provide managed
+identity, revocation telemetry or proof of which workload used a bearer.

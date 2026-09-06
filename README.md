@@ -120,6 +120,10 @@ O módulo 31 implementa o serviço central do contrato para integração control
 sessões revogáveis e consumo atômico de MFA. O backend SQLite e o bearer estático continuam sendo
 fronteiras de treinamento; produção exige datastore operado, TLS e identidade de workload.
 
+O módulo 32 adiciona um trust file estrito com hashes e janelas UTC para rotação sobreposta das
+credenciais do serviço. Bearers em texto claro permanecem fora do arquivo; identidade de workload
+e leases auditáveis continuam como evolução de produção.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
