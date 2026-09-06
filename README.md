@@ -113,6 +113,9 @@ fronteira transacional de host único, não um datastore distribuído. Consulte
 O módulo 29 separa autenticação e persistência por um contrato de backend fail-closed, mantendo
 SQLite local e preparando um adaptador centralizado verificável.
 
+O módulo 30 implementa o cliente HTTPS desse contrato, com autenticação de serviço em runtime,
+timeout e validação estrita. O serviço central continua uma implantação independente.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

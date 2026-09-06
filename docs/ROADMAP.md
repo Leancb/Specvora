@@ -26,7 +26,7 @@
 ## Next modules
 
 1. Add external identity federation and phishing-resistant MFA.
-2. Implement the portal state contract on a centralized multi-node datastore.
+2. Implement and deploy the centralized portal state service behind the HTTP adapter.
 3. Add a managed-secret provider with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
@@ -118,6 +118,14 @@
 - [x] Select the local backend explicitly and preserve database-path compatibility.
 - [x] Fail closed for unknown backends and incomplete configuration.
 - [ ] Implement and verify a centralized backend before multi-node deployment.
+
+## Module 30 checkpoint
+
+- [x] Implement an HTTPS client for the centralized portal state contract.
+- [x] Require runtime service authentication and reject unsafe endpoints.
+- [x] Disable redirects and ambient proxy configuration.
+- [x] Validate response statuses and schemas without leaking remote details.
+- [ ] Deploy and independently verify the centralized state service.
 
 ## Module 17 checkpoint
 

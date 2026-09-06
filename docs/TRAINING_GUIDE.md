@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 30: use `docs/training/MODULE_30_LAB.md` to validate the HTTPS adapter and distinguish a
+verified client contract from deployment of the central service.
+
 Module 29: use `docs/training/MODULE_29_LAB.md` to verify backend selection, fail-closed
 configuration and the guarantees required from a future centralized adapter.
 
