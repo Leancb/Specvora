@@ -83,6 +83,10 @@ Module 32 demo: overlap old and new hashed trust entries, authenticate with both
 old entry without changing application code. Show that the trust file contains no plaintext
 bearer and distinguish controlled rotation from workload identity.
 
+Module 33 demo: exhaust five failed login attempts, show the same generic rejection for a correct
+password inside the window, then advance the laboratory clock and authenticate. Inspect the
+state to show only the normalized subject hash and distinguish application throttling from WAF.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

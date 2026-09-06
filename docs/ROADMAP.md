@@ -75,7 +75,8 @@
 - [x] Separate viewer, reviewer and operator capabilities.
 - [x] Bind the decision reviewer to the authenticated display name.
 - [x] Support per-user and global session revocation without weakening offline approvals.
-- [ ] Add MFA, rate limiting and external identity federation before production exposure.
+- [x] Add transactional login rate limiting.
+- [ ] Add external identity federation and phishing-resistant MFA before production exposure.
 
 ## Module 25 checkpoint
 
@@ -101,7 +102,8 @@
 - [x] Validate a bounded clock-skew window and reject reused counters locally.
 - [x] Keep the enrollment secret out of console output and version control.
 - [x] Add portal UI, operator workflow and deterministic RFC-vector tests.
-- [ ] Add recovery, rate limits, external federation and transactional multi-node replay state.
+- [x] Add transactional login rate limiting through the selected state backend.
+- [ ] Add recovery, external federation and transactional multi-node replay state.
 
 ## Module 28 checkpoint
 
@@ -143,6 +145,14 @@
 - [x] Keep plaintext bearers out of the trust file and failure responses.
 - [x] Fail closed for malformed, oversized, unreadable or temporally invalid trust files.
 - [ ] Replace bearer distribution with managed workload identity and auditable leases.
+
+## Module 33 checkpoint
+
+- [x] Claim a fixed login-attempt budget before password and TOTP verification.
+- [x] Store only a normalized username hash in transactional throttle state.
+- [x] Share the contract across SQLite, HTTPS adapter and central state service.
+- [x] Clear the window only after complete successful authentication.
+- [ ] Add edge/source controls, abuse telemetry and distributed production storage.
 
 ## Module 17 checkpoint
 
