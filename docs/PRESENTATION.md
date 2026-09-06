@@ -59,6 +59,10 @@ Module 25 demo: generate promoted 401, 403 and 503 scenarios through declared co
 Remove an authentication adapter to show deterministic blocking, then explain that no real token
 or dependency outage is involved and signed execution authority remains separate.
 
+Module 26 demo: show an execution request and signed action containing only `staging-api`, inject
+the hidden credential for one PowerShell process and demonstrate output redaction. Explain that
+the environment provider is a local boundary awaiting managed workload identity, not a vault.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

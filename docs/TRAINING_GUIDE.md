@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 26: use `docs/training/MODULE_26_LAB.md` to bind a credential alias to a signed run,
+confirm that its value never enters durable artifacts and discuss the limits of exact redaction.
+
 Module 25: use `docs/training/MODULE_25_LAB.md` to generate controlled authentication and
 dependency failures, reject ambiguous declarations and explain why adapters contain no real
 credentials and must never be enabled in production.

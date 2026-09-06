@@ -98,6 +98,10 @@ O módulo 25 adiciona adaptadores controlados para cenários promovidos de auten
 de dependência. Somente cabeçalhos dedicados e valores não secretos enumerados são aceitos;
 operações autenticadas sem adaptador e declarações ambíguas são bloqueadas antes da geração.
 
+O módulo 26 adiciona referências de credencial por alias à execução assinada. O valor bearer é
+fornecido pelo operador apenas em tempo de execução, não aparece em planos ou evidências e é
+removido da saída capturada. Consulte `docs/modules/26_RUNTIME_CREDENTIAL_BROKER.md`.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

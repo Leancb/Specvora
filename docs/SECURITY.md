@@ -28,6 +28,12 @@ test controls for isolated non-production targets, not authentication credential
 of real provider behavior. Production services must never honor these headers. Ambiguous
 adapters and authenticated operations without an explicit adapter are rejected.
 
+Module 26 adds alias-only bearer credential references. The value is resolved from the operator
+process after request validation, passed only to the approved child process and redacted exactly
+from captured output. Because approved generated code can read it, artifact review, signature
+binding, least privilege, short lifetime and non-production scope remain mandatory. The local
+environment provider is not a production secret manager.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.

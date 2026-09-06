@@ -25,8 +25,8 @@
 
 ## Next modules
 
-1. Add a production credential-broker boundary without exposing secrets to generated tests.
-2. Add external identity federation, MFA and multi-node session storage.
+1. Add external identity federation, MFA and multi-node session storage.
+2. Add a managed-secret provider with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
 
@@ -83,6 +83,15 @@
 - [x] Reject authenticated operations without an adapter and ambiguous adapter declarations.
 - [x] Keep timeout simulation deterministic and preserve the legacy resilience adapter.
 - [x] Preserve separate signed execution, allowlist, confinement and evidence boundaries.
+
+## Module 26 checkpoint
+
+- [x] Bind an alias-only credential reference into signed API execution actions.
+- [x] Resolve bearer values from an operator-controlled runtime provider without persistence.
+- [x] Filter the child environment and redact the exact value from captured output.
+- [x] Fail closed on unavailable or structurally unsafe credential values.
+- [x] Provide a hidden-prompt PowerShell workflow scoped to the current process.
+- [ ] Replace the environment provider with managed workload identity before production use.
 
 ## Module 17 checkpoint
 
