@@ -1,6 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from specvora.portal_session_store import PortalSessionStore
 
 
@@ -22,3 +24,17 @@ def test_session_registration_expiry_and_revocation(tmp_path):
     store.revoke_session("session-1")
     assert not store.session_is_active("session-1", now)
     assert not store.session_is_active("missing", now)
+
+
+def test_backend_selection_fails_closed(tmp_path, monkeypatch):
+    from specvora.portal_auth import _state_store
+
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_BACKEND", "redis")
+    with pytest.raises(ValueError, match="Unsupported"):
+        _state_store()
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_BACKEND", "sqlite")
+    monkeypatch.delenv("SPECVORA_PORTAL_STATE_DB", raising=False)
+    with pytest.raises(ValueError, match="path is missing"):
+        _state_store()
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_DB", str(tmp_path / "state.db"))
+    assert isinstance(_state_store(), PortalSessionStore)

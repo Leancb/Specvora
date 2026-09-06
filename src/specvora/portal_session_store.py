@@ -5,6 +5,14 @@ from __future__ import annotations
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+from typing import Protocol
+
+
+class PortalSessionState(Protocol):
+    def claim_mfa_counter(self, username: str, counter: int) -> bool: ...
+    def register_session(self, session_id: str, username: str, expires_at: datetime) -> None: ...
+    def session_is_active(self, session_id: str, now: datetime) -> bool: ...
+    def revoke_session(self, session_id: str) -> None: ...
 
 
 class PortalSessionStore:

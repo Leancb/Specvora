@@ -47,6 +47,7 @@ $env:SPECVORA_PORTAL_AUTH_MODE = "required"
 $env:SPECVORA_PORTAL_USERS_FILE = $users
 $env:SPECVORA_PORTAL_SESSION_KEY = $sessionKey
 $env:SPECVORA_PORTAL_STATE_DB = Join-Path $auth "session-state.db"
+$env:SPECVORA_PORTAL_STATE_BACKEND = "sqlite"
 $env:SPECVORA_PORTAL_SESSION_MINUTES = "30"
 $env:SPECVORA_PORTAL_COOKIE_SECURE = "false"
 Write-Host "Autenticacao aplicada somente a este PowerShell."
