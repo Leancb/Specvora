@@ -11,7 +11,8 @@ from pathlib import Path
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from pydantic import BaseModel
 
-from specvora.signed_approval import SignedApproval, consume_approval
+from specvora.approval_ledger import claim_github_reference
+from specvora.signed_approval import SignedApproval, consume_approval, verify_approval
 
 
 def canonical_action(action: dict) -> bytes:
@@ -37,9 +38,9 @@ def authorize_action(
     if envelope is None:
         raise ValueError("Signed approval is required")
     key_path = os.getenv("SPECVORA_TRUSTED_PUBLIC_KEY")
-    ledger_path = os.getenv("SPECVORA_APPROVAL_LEDGER")
+    ledger_backend = os.getenv("SPECVORA_APPROVAL_LEDGER_BACKEND", "sqlite")
     trusted_reviewer = os.getenv("SPECVORA_APPROVER_NAME")
-    if not key_path or not ledger_path or not trusted_reviewer:
+    if not key_path or not trusted_reviewer:
         raise ValueError("Server signing trust configuration is incomplete")
     if envelope.claims.reviewer != trusted_reviewer or (
         reviewer is not None and reviewer != trusted_reviewer
@@ -48,9 +49,22 @@ def authorize_action(
     if not project_id:
         raise ValueError("Signed execution requires a project ID")
     key = Ed25519PublicKey.from_public_bytes(Path(key_path).read_bytes())
-    claims = consume_approval(
-        envelope, action, key, project_id, purpose, datetime.now(UTC), Path(ledger_path)
-    )
+    now = datetime.now(UTC)
+    if ledger_backend == "sqlite":
+        ledger_path = os.getenv("SPECVORA_APPROVAL_LEDGER")
+        if not ledger_path:
+            raise ValueError("Server signing trust configuration is incomplete")
+        claims = consume_approval(
+            envelope, action, key, project_id, purpose, now, Path(ledger_path)
+        )
+    elif ledger_backend == "github-ref":
+        claims = verify_approval(envelope, action, key, project_id, purpose, now)
+        repository = os.getenv("SPECVORA_GITHUB_LEDGER_REPOSITORY", "")
+        commit_sha = os.getenv("SPECVORA_GITHUB_LEDGER_SHA", "")
+        token = os.getenv("SPECVORA_GITHUB_LEDGER_TOKEN", "")
+        claim_github_reference(claims.approval_id, repository, commit_sha, token)
+    else:
+        raise ValueError("Invalid approval ledger backend")
     return str(claims.approval_id)
 
 

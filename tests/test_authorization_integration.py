@@ -173,6 +173,29 @@ def test_configuration_and_identity_fail_closed(monkeypatch, trust):
         authorize_action(None, b"action", "demo", "api-execution")
 
 
+def test_github_ledger_claims_only_after_signature_verification(monkeypatch, trust):
+    envelope = signed(trust, b"action", "demo", "api-execution")
+    claims = []
+
+    def claim(approval_id, repository, commit_sha, token):
+        claims.append((approval_id, repository, commit_sha, token))
+
+    monkeypatch.setenv("SPECVORA_APPROVAL_LEDGER_BACKEND", "github-ref")
+    monkeypatch.setenv("SPECVORA_GITHUB_LEDGER_REPOSITORY", "Leancb/Specvora")
+    monkeypatch.setenv("SPECVORA_GITHUB_LEDGER_SHA", "a" * 40)
+    monkeypatch.setenv("SPECVORA_GITHUB_LEDGER_TOKEN", "runtime-token")
+    monkeypatch.setattr("specvora.authorization.claim_github_reference", claim)
+    assert authorize_action(envelope, b"action", "demo", "api-execution") == str(
+        envelope.claims.approval_id
+    )
+    assert claims == [
+        (envelope.claims.approval_id, "Leancb/Specvora", "a" * 40, "runtime-token")
+    ]
+    with pytest.raises(ValueError, match="hash mismatch"):
+        authorize_action(envelope, b"tampered", "demo", "api-execution")
+    assert len(claims) == 1
+
+
 def test_prepare_execution_cli_matches_runtime(tmp_path, monkeypatch, capsys):
     import sys
 
