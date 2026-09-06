@@ -57,7 +57,15 @@
 - [x] Keep artifact hashes, target, allowlist and timeout inside the portable signature.
 - [x] Run loopback fixtures through the signed confined runner in manual GitHub Actions.
 - [x] Upload immutable evidence without placing a private key in repository or CI.
-- [ ] Add a durable atomic consumption ledger for cross-run replay prevention.
+- [x] Add a durable atomic consumption ledger for cross-run replay prevention.
+
+## Module 23 checkpoint
+
+- [x] Validate the signed action before attempting a remote claim.
+- [x] Atomically claim each approval UUID through a unique Git reference.
+- [x] Keep the GitHub token outside the generated-test subprocess environment.
+- [x] Preserve SQLite as the default backend for local execution.
+- [ ] Add authenticated portal sessions, roles and signing-key lifecycle management.
 
 ## Module 17 checkpoint
 

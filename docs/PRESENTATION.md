@@ -47,6 +47,10 @@ Show the JSONL hash chain. Modify a historical decision in a disposable copy and
 
 Present automated tests, coverage threshold, lint, modular documentation, and Git history. State clearly which controls are implemented and which remain roadmap items.
 
+Module 23 demo: run one signed CI approval, show its `specvora-approvals/<approval-id>` tag,
+then replay the same envelope. The second run is rejected before Pytest because GitHub cannot
+atomically create the same reference twice. Emphasize that the private key never enters CI.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

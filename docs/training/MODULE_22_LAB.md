@@ -38,5 +38,5 @@ URL, timeout, allowlist ou caminho lógico mudar, prepare uma nova assinatura.
 
 Mostre que o workflow não contém chave privada e não é acionado por pull requests. Altere
 temporariamente uma cópia local do teste e demonstre que a ação assinável muda. Explique a
-limitação do ledger efêmero: Required reviewers, expiração curta e remoção do segredo são
-controles compensatórios, não equivalem a uma garantia global de uso único.
+limitação original do ledger efêmero e continue no módulo 23 para demonstrar o claim durável.
+Required reviewers, expiração curta e remoção do segredo continuam necessários.

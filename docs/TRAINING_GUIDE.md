@@ -95,6 +95,10 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 23: use `docs/training/MODULE_23_LAB.md` to execute one approval successfully,
+demonstrate that a second hosted run is rejected before Pytest, and explain why ledger-tag
+deletion must be restricted.
+
 Module 22: use `docs/training/MODULE_22_LAB.md` to prepare a portable approval, run the
 protected manual workflow and explain why an ephemeral ledger is not global replay defense.
 

@@ -27,13 +27,13 @@ the detached signature, starts the fixture API on loopback, executes only throug
 The committed `ci/module22-plan` is the reviewed executable artifact. Any commit that changes
 it invalidates an envelope prepared from the earlier tree.
 
-## Replay limitation and operator duty
+## Replay protection evolution
 
-The SQLite consumption ledger is effective within one runner, but GitHub-hosted runners are
-ephemeral. It is not a durable cross-run replay store. The protected environment must require
-a reviewer; the envelope should expire quickly and `SPECVORA_CI_SIGNED_APPROVAL_B64` must be
-deleted immediately after the run. Do not claim global one-time consumption until a durable,
-atomic remote ledger is implemented.
+Module 22 originally used a runner-local SQLite ledger, which was not durable across hosted
+runs. Module 23 replaces that CI limitation with an atomic Git-reference claim while preserving
+SQLite for local execution. The protected environment must still require a reviewer; the
+envelope should expire quickly and `SPECVORA_CI_SIGNED_APPROVAL_B64` must be deleted immediately
+after the run. See `23_DURABLE_APPROVAL_LEDGER.md`.
 
 The workflow recommendation is evidence, never deployment authority. It has no deployment
 job and no production credentials.

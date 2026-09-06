@@ -12,6 +12,12 @@ session authentication remains unimplemented.
 Never treat a public key supplied by an untrusted approval itself as trusted; enrollment is an
 operator responsibility. Keep private key files outside the repository and protect ledger backups.
 
+Module 23 adds the `github-ref` ledger backend for hosted CI. It verifies the approval before
+atomically creating `refs/tags/specvora-approvals/<approval-id>` and starts the subprocess only
+after the claim succeeds. Protect that tag namespace against deletion. The CI token has
+`contents: write` only because GitHub requires it to create a reference; checkout credentials are
+not persisted and the token is filtered out of the generated-test environment.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.
@@ -39,7 +45,8 @@ operator responsibility. Keep private key files outside the repository and prote
 - Approval confusion: API and Playwright runners require distinct exact tokens.
 - Review drift: the Playwright target and allowlist must match the persisted reviewed plan.
 - Unreviewed AI code: deterministic mode is the default and generated files carry an approval warning.
-- Secret leakage: local environment files and generated workspaces are ignored by Git.
+- Secret leakage: local environment files and generated workspaces are ignored by Git; CI ledger
+  tokens are not passed to generated test subprocesses.
 - Evidence spoofing: report summaries must agree with validated per-test outcomes.
 - Prompt injection: model input is minimized, treated as data, and cannot directly invoke tools.
 - AI overreach: model output cannot enter generated tests or execution without a future human workflow.
