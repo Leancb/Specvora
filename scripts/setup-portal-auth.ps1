@@ -27,13 +27,22 @@ if (-not (Test-Path -LiteralPath $sessionKey -PathType Leaf)) {
     [IO.File]::WriteAllBytes($sessionKey, $bytes)
     Write-Host "Nova chave de sessao criada; ela nao sera exibida."
 }
-$arguments = @(
-    "--workspace-root", $root, "create-portal-user",
-    "--users-file", $users, "--username", $Username, "--display-name", $DisplayName
-)
-foreach ($role in $Roles) { $arguments += @("--role", $role) }
-& (Join-Path $root ".venv\Scripts\specvora-governance.exe") @arguments
-if ($LASTEXITCODE -ne 0) { throw "Falha ao criar usuario do portal." }
+$userExists = $false
+if (Test-Path -LiteralPath $users -PathType Leaf) {
+    $userExists = @((Get-Content -LiteralPath $users -Raw | ConvertFrom-Json).users | `
+        Where-Object { $_.username -eq $Username }).Count -gt 0
+}
+if (-not $userExists) {
+    $arguments = @(
+        "--workspace-root", $root, "create-portal-user",
+        "--users-file", $users, "--username", $Username, "--display-name", $DisplayName
+    )
+    foreach ($role in $Roles) { $arguments += @("--role", $role) }
+    & (Join-Path $root ".venv\Scripts\specvora-governance.exe") @arguments
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao criar usuario do portal." }
+} else {
+    Write-Host "Usuario existente preservado: $Username"
+}
 $env:SPECVORA_PORTAL_AUTH_MODE = "required"
 $env:SPECVORA_PORTAL_USERS_FILE = $users
 $env:SPECVORA_PORTAL_SESSION_KEY = $sessionKey
