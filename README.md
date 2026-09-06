@@ -91,6 +91,9 @@ O módulo 23 impede replay entre runners hospedados ao consumir cada aprovação
 Git criada atomicamente antes da execução. Consulte
 `docs/modules/23_DURABLE_APPROVAL_LEDGER.md`.
 
+O módulo 24 adiciona sessões assinadas, CSRF e papéis explícitos ao portal local sem substituir
+a aprovação Ed25519 offline. Consulte `docs/modules/24_AUTHENTICATED_PORTAL_ROLES.md`.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

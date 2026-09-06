@@ -25,8 +25,8 @@
 
 ## Next modules
 
-1. Add authenticated portal sessions, role authorization and key lifecycle management.
-2. Add controlled fixture adapters for promoted authentication and dependency simulators.
+1. Add controlled fixture adapters for promoted authentication and dependency simulators.
+2. Add external identity federation, MFA and multi-node session storage.
 
 ## Module 19 checkpoint
 
@@ -65,7 +65,16 @@
 - [x] Atomically claim each approval UUID through a unique Git reference.
 - [x] Keep the GitHub token outside the generated-test subprocess environment.
 - [x] Preserve SQLite as the default backend for local execution.
-- [ ] Add authenticated portal sessions, roles and signing-key lifecycle management.
+- [x] Add authenticated portal sessions, roles and session-key lifecycle controls.
+
+## Module 24 checkpoint
+
+- [x] Store salted password hashes and keep the session key outside version control.
+- [x] Enforce expiring HttpOnly sessions and CSRF tokens in required mode.
+- [x] Separate viewer, reviewer and operator capabilities.
+- [x] Bind the decision reviewer to the authenticated display name.
+- [x] Support per-user and global session revocation without weakening offline approvals.
+- [ ] Add MFA, rate limiting and external identity federation before production exposure.
 
 ## Module 17 checkpoint
 

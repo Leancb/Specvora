@@ -51,6 +51,10 @@ Module 23 demo: run one signed CI approval, show its `specvora-approvals/<approv
 then replay the same envelope. The second run is rejected before Pytest because GitHub cannot
 atomically create the same reference twice. Emphasize that the private key never enters CI.
 
+Module 24 demo: log in with separate viewer, reviewer and operator identities. Show a rejected
+role escalation and reviewer-name mismatch, then explain why login still cannot replace the
+offline signature bound to the reviewed action.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

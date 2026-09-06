@@ -18,6 +18,11 @@ after the claim succeeds. Protect that tag namespace against deletion. The CI to
 `contents: write` only because GitHub requires it to create a reference; checkout credentials are
 not persisted and the token is filtered out of the generated-test environment.
 
+Module 24 adds signed HttpOnly portal sessions, CSRF validation and explicit viewer/reviewer/
+operator capabilities. User deactivation or `session_version` changes revoke individual
+sessions; rotating the external 32-byte session key revokes all sessions. Authentication never
+substitutes for a purpose-bound Ed25519 approval.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.
@@ -60,6 +65,6 @@ The application-level runners remain available for local development and are not
 boundary. The isolated profile requires a Linux container runtime with network namespaces,
 `nftables`, and temporary `CAP_NET_ADMIN`; deployments must not use host networking or add other
 capabilities. Signed approvals and secret brokering remain post-MVP hardening items.
-The current portal is intentionally local and has no authentication, authorization roles, or
-CSRF protection. Do not expose it on an untrusted network; production deployment is blocked
-on those controls and signed approval records.
+The local JSON identity store is not a production identity provider. Do not expose the portal on
+an untrusted network without required mode, HTTPS, secure cookies, rate limiting, MFA and an
+operational identity lifecycle.

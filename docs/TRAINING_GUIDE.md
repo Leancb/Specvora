@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 24: use `docs/training/MODULE_24_LAB.md` to compare viewer, reviewer and operator,
+demonstrate CSRF and identity mismatch rejection, then revoke an active session.
+
 Module 23: use `docs/training/MODULE_23_LAB.md` to execute one approval successfully,
 demonstrate that a second hosted run is rejected before Pytest, and explain why ledger-tag
 deletion must be restricted.
