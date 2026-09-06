@@ -13,6 +13,10 @@ import httpx
 
 class PortalSessionState(Protocol):
     def claim_mfa_counter(self, username: str, counter: int) -> bool: ...
+    def claim_login_attempt(
+        self, subject: str, now: datetime, limit: int, window_seconds: int
+    ) -> bool: ...
+    def clear_login_attempts(self, subject: str) -> None: ...
     def register_session(self, session_id: str, username: str, expires_at: datetime) -> None: ...
     def session_is_active(self, session_id: str, now: datetime) -> bool: ...
     def revoke_session(self, session_id: str) -> None: ...
@@ -35,6 +39,11 @@ class PortalSessionStore:
                     expires_at TEXT NOT NULL,
                     revoked INTEGER NOT NULL DEFAULT 0
                 );
+                CREATE TABLE IF NOT EXISTS login_attempts (
+                    subject TEXT PRIMARY KEY,
+                    window_started TEXT NOT NULL,
+                    attempts INTEGER NOT NULL
+                );
                 """
             )
 
@@ -49,6 +58,40 @@ class PortalSessionStore:
             )
             connection.commit()
             return result.rowcount == 1
+
+    def claim_login_attempt(
+        self, subject: str, now: datetime, limit: int, window_seconds: int
+    ) -> bool:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT window_started, attempts FROM login_attempts WHERE subject=?",
+                (subject,),
+            ).fetchone()
+            expired = row is None or (
+                now - datetime.fromisoformat(row[0])
+            ).total_seconds() >= window_seconds
+            if expired:
+                connection.execute(
+                    """INSERT INTO login_attempts(subject, window_started, attempts)
+                    VALUES (?, ?, 1) ON CONFLICT(subject) DO UPDATE SET
+                    window_started=excluded.window_started, attempts=1""",
+                    (subject, now.isoformat()),
+                )
+                connection.commit()
+                return True
+            if row[1] >= limit:
+                connection.rollback()
+                return False
+            connection.execute(
+                "UPDATE login_attempts SET attempts=attempts+1 WHERE subject=?", (subject,)
+            )
+            connection.commit()
+            return True
+
+    def clear_login_attempts(self, subject: str) -> None:
+        with self._connect() as connection:
+            connection.execute("DELETE FROM login_attempts WHERE subject=?", (subject,))
 
     def register_session(
         self, session_id: str, username: str, expires_at: datetime
@@ -103,6 +146,26 @@ class HttpPortalSessionStore:
         if response.status_code == 409:
             return False
         raise RuntimeError("Central portal state service rejected MFA claim")
+
+    def claim_login_attempt(
+        self, subject: str, now: datetime, limit: int, window_seconds: int
+    ) -> bool:
+        response = self._request("POST", "/v1/login-attempts", json={
+            "subject": subject, "observed_at": now.isoformat(), "limit": limit,
+            "window_seconds": window_seconds,
+        })
+        if response.status_code == 201:
+            return True
+        if response.status_code == 429:
+            return False
+        raise RuntimeError("Central portal state service rejected login attempt")
+
+    def clear_login_attempts(self, subject: str) -> None:
+        response = self._request(
+            "DELETE", f"/v1/login-attempts/{quote(subject, safe='')}"
+        )
+        if response.status_code != 204:
+            raise RuntimeError("Central portal state service rejected login reset")
 
     def register_session(self, session_id: str, username: str, expires_at: datetime) -> None:
         response = self._request("POST", "/v1/sessions", json={"session_id": session_id,

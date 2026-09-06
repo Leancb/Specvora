@@ -31,6 +31,13 @@ class SessionRegistration(BaseModel):
     expires_at: datetime
 
 
+class LoginAttempt(BaseModel):
+    subject: str = Field(pattern=r"^[0-9a-f]{64}$")
+    observed_at: datetime
+    limit: int = Field(ge=1, le=20)
+    window_seconds: int = Field(ge=60, le=3600)
+
+
 class ServiceTokenDigest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     token_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -110,6 +117,25 @@ def claim_mfa(claim: MfaClaim, _authorized: Authorized) -> Response:
     if not _store().claim_mfa_counter(claim.username, claim.counter):
         raise HTTPException(status_code=409, detail="MFA counter was already claimed")
     return Response(status_code=201)
+
+
+@app.post("/v1/login-attempts", status_code=201)
+def claim_login_attempt(attempt: LoginAttempt, _authorized: Authorized) -> Response:
+    if attempt.observed_at.tzinfo is None:
+        raise HTTPException(status_code=422, detail="Timezone-aware timestamp is required")
+    if not _store().claim_login_attempt(
+        attempt.subject, attempt.observed_at, attempt.limit, attempt.window_seconds
+    ):
+        raise HTTPException(status_code=429, detail="Login attempt limit reached")
+    return Response(status_code=201)
+
+
+@app.delete("/v1/login-attempts/{subject}", status_code=204)
+def clear_login_attempts(subject: str, _authorized: Authorized) -> Response:
+    if len(subject) != 64 or any(character not in "0123456789abcdef" for character in subject):
+        raise HTTPException(status_code=422, detail="Login subject is invalid")
+    _store().clear_login_attempts(subject)
+    return Response(status_code=204)
 
 
 @app.post("/v1/sessions", status_code=201)

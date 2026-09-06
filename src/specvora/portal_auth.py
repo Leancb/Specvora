@@ -22,6 +22,8 @@ from specvora.portal_session_store import (
 )
 
 PASSWORD_ITERATIONS = 600_000
+LOGIN_ATTEMPT_LIMIT = 5
+LOGIN_ATTEMPT_WINDOW_SECONDS = 300
 Role = Literal["viewer", "reviewer", "operator"]
 Capability = Literal["read", "review", "manage"]
 ROLE_CAPABILITIES: dict[str, set[str]] = {
@@ -93,12 +95,19 @@ def authenticate(
     *,
     now: datetime | None = None,
 ) -> PortalUser:
+    instant = now or datetime.now(UTC)
+    state = _state_store()
+    login_subject = hashlib.sha256(username.casefold().encode("utf-8")).hexdigest()
+    if state and not state.claim_login_attempt(
+        login_subject, instant, LOGIN_ATTEMPT_LIMIT, LOGIN_ATTEMPT_WINDOW_SECONDS
+    ):
+        raise ValueError("Invalid portal credentials")
     users = _load_users()
     user = next((item for item in users.users if item.username == username), None)
     if user is None or not user.active or not verify_password(password, user.password_hash):
         raise ValueError("Invalid portal credentials")
     if user.totp_secret:
-        counter = verify_totp(user.totp_secret, totp_code or "", now=now)
+        counter = verify_totp(user.totp_secret, totp_code or "", now=instant)
         if counter is None:
             raise ValueError("Invalid portal credentials")
         store = _state_store()
@@ -110,6 +119,8 @@ def authenticate(
                 raise ValueError("Invalid portal credentials")
             user.last_totp_counter = counter
             _write_users(_users_path(), users)
+    if state:
+        state.clear_login_attempts(login_subject)
     return user
 
 

@@ -56,6 +56,22 @@ def test_service_fails_closed_without_storage(tmp_path, monkeypatch):
     assert response.status_code == 503
 
 
+def test_service_enforces_and_clears_login_attempt_limit(tmp_path, monkeypatch):
+    client, headers = configured_client(tmp_path, monkeypatch)
+    subject = "a" * 64
+    payload = {
+        "subject": subject,
+        "observed_at": datetime.now(UTC).isoformat(),
+        "limit": 2,
+        "window_seconds": 300,
+    }
+    assert client.post("/v1/login-attempts", headers=headers, json=payload).status_code == 201
+    assert client.post("/v1/login-attempts", headers=headers, json=payload).status_code == 201
+    assert client.post("/v1/login-attempts", headers=headers, json=payload).status_code == 429
+    assert client.delete(f"/v1/login-attempts/{subject}", headers=headers).status_code == 204
+    assert client.post("/v1/login-attempts", headers=headers, json=payload).status_code == 201
+
+
 def test_service_accepts_only_active_hashed_keyring_tokens(tmp_path, monkeypatch):
     client, _headers = configured_client(tmp_path, monkeypatch)
     now = datetime.now(UTC)

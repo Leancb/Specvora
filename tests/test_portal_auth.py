@@ -83,6 +83,26 @@ def test_disabled_user_and_session_version_revoke_access(configured_auth):
         authenticate("reviewer.one", "correct horse battery staple")
 
 
+def test_authentication_attempts_are_limited_and_success_clears_state(
+    configured_auth, tmp_path, monkeypatch
+):
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_BACKEND", "sqlite")
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_DB", str(tmp_path / "attempts.db"))
+    now = datetime(2026, 9, 6, tzinfo=UTC)
+    for _ in range(5):
+        with pytest.raises(ValueError, match="Invalid portal credentials"):
+            authenticate("reviewer.one", "incorrect password", now=now)
+    with pytest.raises(ValueError, match="Invalid portal credentials"):
+        authenticate("reviewer.one", "correct horse battery staple", now=now)
+    later = now + timedelta(minutes=5)
+    assert authenticate("reviewer.one", "correct horse battery staple", now=later).username == (
+        "reviewer.one"
+    )
+    assert authenticate("reviewer.one", "correct horse battery staple", now=later).username == (
+        "reviewer.one"
+    )
+
+
 def test_roles_grant_only_explicit_capabilities():
     reviewer = PortalUser(
         username="reviewer.one",

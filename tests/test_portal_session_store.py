@@ -26,6 +26,17 @@ def test_session_registration_expiry_and_revocation(tmp_path):
     assert not store.session_is_active("missing", now)
 
 
+def test_login_attempt_window_is_bounded_and_resettable(tmp_path):
+    store = PortalSessionStore(tmp_path / "state.db")
+    now = datetime(2026, 9, 6, tzinfo=UTC)
+    assert all(store.claim_login_attempt("a" * 64, now, 5, 300) for _ in range(5))
+    assert not store.claim_login_attempt("a" * 64, now, 5, 300)
+    store.clear_login_attempts("a" * 64)
+    assert store.claim_login_attempt("a" * 64, now, 5, 300)
+    assert store.claim_login_attempt("b" * 64, now, 1, 300)
+    assert store.claim_login_attempt("b" * 64, now + timedelta(seconds=300), 1, 300)
+
+
 def test_backend_selection_fails_closed(tmp_path, monkeypatch):
     from specvora.portal_auth import _state_store
 
