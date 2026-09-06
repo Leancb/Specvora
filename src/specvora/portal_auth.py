@@ -15,7 +15,11 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from specvora.portal_session_store import PortalSessionState, PortalSessionStore
+from specvora.portal_session_store import (
+    HttpPortalSessionStore,
+    PortalSessionState,
+    PortalSessionStore,
+)
 
 PASSWORD_ITERATIONS = 600_000
 Role = Literal["viewer", "reviewer", "operator"]
@@ -300,6 +304,10 @@ def _state_store() -> PortalSessionState | None:
         backend = "sqlite"
     if backend is None:
         return None
+    if backend == "http":
+        endpoint = os.getenv("SPECVORA_PORTAL_STATE_ENDPOINT", "")
+        token = os.getenv("SPECVORA_PORTAL_STATE_TOKEN", "")
+        return HttpPortalSessionStore(endpoint, token)
     if backend != "sqlite":
         raise ValueError("Unsupported portal state backend")
     if not path:
