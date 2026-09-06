@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 28: use `docs/training/MODULE_28_LAB.md` to demonstrate durable logout, concurrent TOTP
+replay rejection and the boundary between transactional local state and distributed storage.
+
 Module 27: use `docs/training/MODULE_27_LAB.md` to enroll TOTP, reject password-only and replayed
 logins, revoke old sessions and identify why local seed storage is not production federation.
 

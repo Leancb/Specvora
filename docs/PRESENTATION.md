@@ -67,6 +67,10 @@ Module 27 demo: enroll one local user, show password-only rejection, complete a 
 reject immediate code reuse. Contrast local TOTP with external federation and phishing-resistant
 authentication, and show that offline execution approval remains an independent authority.
 
+Module 28 demo: copy a laboratory session, log out and show server-side rejection of the copied
+cookie. Run concurrent claims for one TOTP counter and show one winner, then distinguish this
+single-host SQLite transaction from a production distributed session service.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

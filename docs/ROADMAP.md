@@ -26,7 +26,7 @@
 ## Next modules
 
 1. Add external identity federation and phishing-resistant MFA.
-2. Add transactional multi-node session, MFA replay and revocation storage.
+2. Replace local SQLite session state with a centralized multi-node datastore.
 3. Add a managed-secret provider with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
@@ -102,6 +102,15 @@
 - [x] Keep the enrollment secret out of console output and version control.
 - [x] Add portal UI, operator workflow and deterministic RFC-vector tests.
 - [ ] Add recovery, rate limits, external federation and transactional multi-node replay state.
+
+## Module 28 checkpoint
+
+- [x] Register issued portal sessions in transactional SQLite state.
+- [x] Require an active server-side record during cookie verification.
+- [x] Revoke the server-side session on logout.
+- [x] Claim TOTP counters atomically and reject concurrent replay.
+- [x] Preserve an explicit compatibility fallback for local Module 27 environments.
+- [ ] Replace SQLite with a centralized datastore before multi-node production deployment.
 
 ## Module 17 checkpoint
 

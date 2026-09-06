@@ -40,6 +40,11 @@ contains sensitive TOTP seeds. There is no cross-process replay transaction, rec
 rate limiting, external federation or phishing-resistant factor; do not expose this local design as
 a production identity service.
 
+Module 28 registers signed-cookie identifiers and MFA counters in SQLite. Logout becomes a durable
+server-side revocation and a conditional transactional claim prevents concurrent reuse of a TOTP
+counter on one host. SQLite is not the promised multi-node store; network filesystems, replication,
+retention, centralized availability and transport security remain outside this local boundary.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.

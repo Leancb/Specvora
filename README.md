@@ -106,6 +106,10 @@ O módulo 27 adiciona enrollment TOTP por usuário, revogação das sessões ant
 local de códigos reutilizados. Consulte `docs/modules/27_PORTAL_TOTP_MFA.md`; federação externa,
 recuperação, rate limiting e estado multinó continuam fora desta fronteira local.
 
+O módulo 28 adiciona sessões revogáveis e consumo atômico de contadores TOTP em SQLite. É uma
+fronteira transacional de host único, não um datastore distribuído. Consulte
+`docs/modules/28_TRANSACTIONAL_PORTAL_SESSION_STATE.md`.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
