@@ -86,6 +86,8 @@ jobs:
         env:
           SPECVORA_GITHUB_LEDGER_TOKEN: ${{ github.token }}
         run: |
+          mkdir -p ci/evidence
+          set +e
           specvora run-pytest --workspace-root "$GITHUB_WORKSPACE" \
             --generated-dir "$GITHUB_WORKSPACE/ci/module22-plan" \
             --report-out "$GITHUB_WORKSPACE/ci/evidence/pytest-report.json" \
@@ -94,7 +96,12 @@ jobs:
             --base-url http://127.0.0.1:8080 --allowed-host 127.0.0.1 \
             --approval APPROVED --signed-approval ci/runtime/signed-approval.json \
             --timeout 60 --project-id petstore-demo --run-id "ci-${GITHUB_RUN_ID}" \
-            --requirements-total 1 --requirements-covered 1
+            --requirements-total 1 --requirements-covered 1 2>&1 | tee ci/evidence/execution.log
+          status=${PIPESTATUS[0]}
+          set -e
+          printf '{"run_id":"%s","exit_code":%s}\n' "$GITHUB_RUN_ID" "$status" \
+            > ci/evidence/execution-attempt.json
+          exit "$status"
       - name: Upload immutable evidence
         if: always()
         uses: actions/upload-artifact@v7

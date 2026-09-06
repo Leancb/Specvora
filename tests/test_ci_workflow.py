@@ -14,6 +14,9 @@ def test_governed_workflow_has_no_private_key_and_uses_signed_runner():
     assert "SPECVORA_GITHUB_LEDGER_REPOSITORY: ${{ github.repository }}" in workflow
     assert "SPECVORA_GITHUB_LEDGER_SHA: ${{ github.sha }}" in workflow
     assert "SPECVORA_GITHUB_LEDGER_TOKEN: ${{ github.token }}" in workflow
+    assert "mkdir -p ci/evidence" in workflow
+    assert "status=${PIPESTATUS[0]}" in workflow
+    assert "ci/evidence/execution-attempt.json" in workflow
 
 
 def test_ci_plan_is_ready_and_cannot_target_external_hosts():

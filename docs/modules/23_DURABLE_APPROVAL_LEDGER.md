@@ -15,6 +15,9 @@ An invalid signature never writes to the ledger. A successfully claimed approval
 if the later test execution fails; safety takes precedence over retry convenience. A retry needs
 a newly reviewed and signed envelope.
 
+The workflow creates `execution.log` and `execution-attempt.json` before returning a rejection
+status. Therefore, replay attempts retain downloadable evidence even though Pytest never starts.
+
 ## GitHub backend
 
 Set `SPECVORA_APPROVAL_LEDGER_BACKEND=github-ref` together with repository, commit SHA and a

@@ -16,6 +16,8 @@ runners hospedados diferentes.
 Execute `Governed fixture execution` e confirme o sucesso. Localize a tag técnica cujo nome
 contém o `approval_id` da evidência. Sem preparar outra autorização, dispare o workflow novamente.
 O segundo job deve falhar antes do Pytest com a mensagem de que o ledger rejeitou o claim.
+Baixe o artifact desse job e confirme `execution-attempt.json` com código diferente de zero e o
+diagnóstico em `execution.log`.
 
 Prepare então um envelope novo. O novo `approval_id` cria outra tag e permite uma nova execução.
 Remova o segredo efêmero após o exercício; não remova as tags de consumo.
