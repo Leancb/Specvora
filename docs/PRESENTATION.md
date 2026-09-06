@@ -63,6 +63,10 @@ Module 26 demo: show an execution request and signed action containing only `sta
 the hidden credential for one PowerShell process and demonstrate output redaction. Explain that
 the environment provider is a local boundary awaiting managed workload identity, not a vault.
 
+Module 27 demo: enroll one local user, show password-only rejection, complete a TOTP login and
+reject immediate code reuse. Contrast local TOTP with external federation and phishing-resistant
+authentication, and show that offline execution approval remains an independent authority.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

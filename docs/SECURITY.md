@@ -34,6 +34,12 @@ from captured output. Because approved generated code can read it, artifact revi
 binding, least privilege, short lifetime and non-production scope remain mandatory. The local
 environment provider is not a production secret manager.
 
+Module 27 adds opt-in per-user TOTP and rejects reuse of the last successful counter. Enrollment
+revokes older sessions and keeps the seed out of console output, but the local user file necessarily
+contains sensitive TOTP seeds. There is no cross-process replay transaction, recovery workflow,
+rate limiting, external federation or phishing-resistant factor; do not expose this local design as
+a production identity service.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.

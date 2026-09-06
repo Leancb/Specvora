@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 27: use `docs/training/MODULE_27_LAB.md` to enroll TOTP, reject password-only and replayed
+logins, revoke old sessions and identify why local seed storage is not production federation.
+
 Module 26: use `docs/training/MODULE_26_LAB.md` to bind a credential alias to a signed run,
 confirm that its value never enters durable artifacts and discuss the limits of exact redaction.
 

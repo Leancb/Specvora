@@ -25,8 +25,9 @@
 
 ## Next modules
 
-1. Add external identity federation, MFA and multi-node session storage.
-2. Add a managed-secret provider with workload identity and auditable short-lived leases.
+1. Add external identity federation and phishing-resistant MFA.
+2. Add transactional multi-node session, MFA replay and revocation storage.
+3. Add a managed-secret provider with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
 
@@ -92,6 +93,15 @@
 - [x] Fail closed on unavailable or structurally unsafe credential values.
 - [x] Provide a hidden-prompt PowerShell workflow scoped to the current process.
 - [ ] Replace the environment provider with managed workload identity before production use.
+
+## Module 27 checkpoint
+
+- [x] Add explicit per-user TOTP enrollment with session revocation.
+- [x] Require MFA on login only for enrolled users.
+- [x] Validate a bounded clock-skew window and reject reused counters locally.
+- [x] Keep the enrollment secret out of console output and version control.
+- [x] Add portal UI, operator workflow and deterministic RFC-vector tests.
+- [ ] Add recovery, rate limits, external federation and transactional multi-node replay state.
 
 ## Module 17 checkpoint
 
