@@ -8,8 +8,12 @@ def test_governed_workflow_has_no_private_key_and_uses_signed_runner():
     assert "SPECVORA_ACTION_PATH_MODE: workspace-relative" in workflow
     assert "specvora run-pytest" in workflow
     assert "environment: specvora-governed" in workflow
-    assert "permissions:\n  contents: read" in workflow
+    assert "permissions:\n  contents: write" in workflow
     assert "actions/upload-artifact@v7" in workflow
+    assert "SPECVORA_APPROVAL_LEDGER_BACKEND: github-ref" in workflow
+    assert "SPECVORA_GITHUB_LEDGER_REPOSITORY: ${{ github.repository }}" in workflow
+    assert "SPECVORA_GITHUB_LEDGER_SHA: ${{ github.sha }}" in workflow
+    assert "SPECVORA_GITHUB_LEDGER_TOKEN: ${{ github.token }}" in workflow
 
 
 def test_ci_plan_is_ready_and_cannot_target_external_hosts():

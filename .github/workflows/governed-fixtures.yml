@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: specvora-governed-fixtures
@@ -20,7 +20,9 @@ jobs:
       SPECVORA_ACTION_PATH_MODE: workspace-relative
       SPECVORA_APPROVER_NAME: ${{ vars.SPECVORA_CI_APPROVER }}
       SPECVORA_TRUSTED_PUBLIC_KEY: ${{ github.workspace }}/ci/runtime/public.key
-      SPECVORA_APPROVAL_LEDGER: ${{ github.workspace }}/ci/evidence/approval-ledger.sqlite
+      SPECVORA_APPROVAL_LEDGER_BACKEND: github-ref
+      SPECVORA_GITHUB_LEDGER_REPOSITORY: ${{ github.repository }}
+      SPECVORA_GITHUB_LEDGER_SHA: ${{ github.sha }}
       SPECVORA_BASE_URL: http://127.0.0.1:8080
     steps:
       - uses: actions/checkout@v7
@@ -81,6 +83,8 @@ jobs:
           done
           exit 1
       - name: Execute through signed confined runner
+        env:
+          SPECVORA_GITHUB_LEDGER_TOKEN: ${{ github.token }}
         run: |
           specvora run-pytest --workspace-root "$GITHUB_WORKSPACE" \
             --generated-dir "$GITHUB_WORKSPACE/ci/module22-plan" \

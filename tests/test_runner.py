@@ -43,11 +43,13 @@ def test_runner_uses_fixed_command_filtered_environment_and_no_shell(
 
     monkeypatch.setattr(subprocess, "run", fake_run)
     monkeypatch.setenv("OPENAI_API_KEY", "must-not-leak")
+    monkeypatch.setenv("SPECVORA_GITHUB_LEDGER_TOKEN", "must-not-leak")
     outcome = run_generated_tests(request)
     assert captured["shell"] is False
     assert captured["command"][1:3] == ["-m", "pytest"]
     assert "--json-report" in captured["command"]
     assert "OPENAI_API_KEY" not in captured["env"]
+    assert "SPECVORA_GITHUB_LEDGER_TOKEN" not in captured["env"]
     assert captured["env"]["SPECVORA_BASE_URL"] == "http://localhost:8080"
     assert outcome.exit_code == 0
 
