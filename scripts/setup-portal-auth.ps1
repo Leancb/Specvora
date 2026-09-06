@@ -18,7 +18,12 @@ $sessionKey = Join-Path $auth "session.key"
 [IO.Directory]::CreateDirectory($auth) | Out-Null
 if (-not (Test-Path -LiteralPath $sessionKey -PathType Leaf)) {
     $bytes = [byte[]]::new(32)
-    [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+    $generator = [Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $generator.GetBytes($bytes)
+    } finally {
+        $generator.Dispose()
+    }
     [IO.File]::WriteAllBytes($sessionKey, $bytes)
     Write-Host "Nova chave de sessao criada; ela nao sera exibida."
 }

@@ -1,6 +1,7 @@
 import json
 import sys
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -151,3 +152,10 @@ def test_create_portal_user_cli_prompts_without_password_argument(
     result = json.loads(capsys.readouterr().out)
     assert result["roles"] == ["operator", "reviewer"]
     assert target.is_file()
+
+
+def test_setup_script_uses_windows_powershell_compatible_random_generator():
+    script = Path("scripts/setup-portal-auth.ps1").read_text(encoding="utf-8")
+    assert "RandomNumberGenerator]::Create()" in script
+    assert "$generator.GetBytes($bytes)" in script
+    assert "RandomNumberGenerator]::Fill" not in script
