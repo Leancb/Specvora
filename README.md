@@ -94,6 +94,10 @@ Git criada atomicamente antes da execução. Consulte
 O módulo 24 adiciona sessões assinadas, CSRF e papéis explícitos ao portal local sem substituir
 a aprovação Ed25519 offline. Consulte `docs/modules/24_AUTHENTICATED_PORTAL_ROLES.md`.
 
+O módulo 25 adiciona adaptadores controlados para cenários promovidos de autenticação e falhas
+de dependência. Somente cabeçalhos dedicados e valores não secretos enumerados são aceitos;
+operações autenticadas sem adaptador e declarações ambíguas são bloqueadas antes da geração.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

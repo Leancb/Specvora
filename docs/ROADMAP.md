@@ -25,7 +25,7 @@
 
 ## Next modules
 
-1. Add controlled fixture adapters for promoted authentication and dependency simulators.
+1. Add a production credential-broker boundary without exposing secrets to generated tests.
 2. Add external identity federation, MFA and multi-node session storage.
 
 ## Module 19 checkpoint
@@ -75,6 +75,14 @@
 - [x] Bind the decision reviewer to the authenticated display name.
 - [x] Support per-user and global session revocation without weakening offline approvals.
 - [ ] Add MFA, rate limiting and external identity federation before production exposure.
+
+## Module 25 checkpoint
+
+- [x] Add explicit promoted adapters for authentication and dependency failures.
+- [x] Restrict adapters to dedicated headers and enumerated non-secret control values.
+- [x] Reject authenticated operations without an adapter and ambiguous adapter declarations.
+- [x] Keep timeout simulation deterministic and preserve the legacy resilience adapter.
+- [x] Preserve separate signed execution, allowlist, confinement and evidence boundaries.
 
 ## Module 17 checkpoint
 

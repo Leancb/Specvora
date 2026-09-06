@@ -95,6 +95,10 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 25: use `docs/training/MODULE_25_LAB.md` to generate controlled authentication and
+dependency failures, reject ambiguous declarations and explain why adapters contain no real
+credentials and must never be enabled in production.
+
 Module 24: use `docs/training/MODULE_24_LAB.md` to compare viewer, reviewer and operator,
 demonstrate CSRF and identity mismatch rejection, then revoke an active session.
 

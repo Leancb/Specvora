@@ -55,6 +55,10 @@ Module 24 demo: log in with separate viewer, reviewer and operator identities. S
 role escalation and reviewer-name mismatch, then explain why login still cannot replace the
 offline signature bound to the reviewed action.
 
+Module 25 demo: generate promoted 401, 403 and 503 scenarios through declared control headers.
+Remove an authentication adapter to show deterministic blocking, then explain that no real token
+or dependency outage is involved and signed execution authority remains separate.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

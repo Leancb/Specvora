@@ -23,6 +23,11 @@ operator capabilities. User deactivation or `session_version` changes revoke ind
 sessions; rotating the external 32-byte session key revokes all sessions. Authentication never
 substitutes for a purpose-bound Ed25519 approval.
 
+Module 25 fixture adapters use dedicated headers with enumerated non-secret values. They are
+test controls for isolated non-production targets, not authentication credentials or evidence
+of real provider behavior. Production services must never honor these headers. Ambiguous
+adapters and authenticated operations without an explicit adapter are rejected.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.
