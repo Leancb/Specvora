@@ -12,3 +12,11 @@ def test_controlled_fixture_target():
         == 503
     )
     assert client.get("/pets/1", headers={"X-Specvora-Fixture": "unknown"}).status_code == 400
+    assert client.get("/pets/1", headers={"X-Specvora-Auth-Fixture": "valid"}).status_code == 200
+    assert client.get("/pets/1", headers={"X-Specvora-Auth-Fixture": "expired"}).status_code == 401
+    response = client.get(
+        "/pets/1", headers={"X-Specvora-Auth-Fixture": "insufficient-scope"}
+    )
+    assert response.status_code == 403
+    response = client.get("/pets/1", headers={"X-Specvora-Dependency-Fixture": "timeout"})
+    assert response.status_code == 503

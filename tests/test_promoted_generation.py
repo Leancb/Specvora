@@ -8,7 +8,7 @@ import pytest
 
 from specvora.ai_proposals import AIProposalEnvelope, AIProposedScenario, proposal_input_sha256
 from specvora.cli import main
-from specvora.promoted_generation import _render, generate_promoted
+from specvora.promoted_generation import _fixture_for, _render, generate_promoted
 from specvora.proposal_review import review_and_promote
 
 
@@ -315,3 +315,57 @@ def test_cli_and_confinement(tmp_path, monkeypatch, capsys):
     )
     main()
     assert json.loads(capsys.readouterr().out)["tests_generated"] == 2
+
+
+def test_authentication_and_dependency_adapters_are_explicit():
+    authenticated = {
+        "security": [{"bearerAuth": []}],
+        "x-specvora-auth-fixtures": {
+            "401": {
+                "kind": "request-header",
+                "name": "X-Specvora-Auth-Fixture",
+                "value": "expired",
+            }
+        },
+    }
+    assert _fixture_for(authenticated, [401], True) == {
+        "X-Specvora-Auth-Fixture": "expired"
+    }
+    with pytest.raises(ValueError, match="declared adapter"):
+        _fixture_for({"security": [{"bearerAuth": []}]}, [401], True)
+    dependency = {
+        "x-specvora-dependency-fixtures": {
+            "503": {
+                "kind": "request-header",
+                "name": "X-Specvora-Dependency-Fixture",
+                "value": "timeout",
+            }
+        }
+    }
+    assert _fixture_for(dependency, [503]) == {"X-Specvora-Dependency-Fixture": "timeout"}
+
+
+def test_adapter_rejects_wrong_header_state_and_ambiguity():
+    invalid = {
+        "x-specvora-auth-fixtures": {
+            "401": {
+                "kind": "request-header",
+                "name": "Authorization",
+                "value": "real-token",
+            }
+        }
+    }
+    with pytest.raises(ValueError, match="dedicated"):
+        _fixture_for(invalid, [401], True)
+    ambiguous = {
+        **invalid,
+        "x-specvora-test-fixtures": {
+            "401": {
+                "kind": "request-header",
+                "name": "X-Specvora-Fixture",
+                "value": "legacy",
+            }
+        },
+    }
+    with pytest.raises(ValueError, match="multiple adapters"):
+        _fixture_for(ambiguous, [401], True)

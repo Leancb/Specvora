@@ -116,8 +116,7 @@ def generate_promoted(
                 default_style = "simple" if parameter.get("in") == "path" else "form"
                 if "content" in parameter or parameter.get("style", default_style) != default_style:
                     raise ValueError("UNSUPPORTED_SERIALIZATION: parameter style needs an adapter")
-            if operation_doc.get("security", document.get("security")):
-                raise ValueError("FIXTURE_REQUIRED: authenticated operation needs credential setup")
+            authenticated = bool(operation_doc.get("security", document.get("security")))
             body_doc = operation_doc.get("requestBody", {})
             if body_doc and "application/json" not in body_doc.get("content", {}):
                 raise ValueError("UNSUPPORTED_SERIALIZATION: only JSON request bodies supported")
@@ -126,7 +125,7 @@ def generate_promoted(
                 raise ValueError(
                     "UNDOCUMENTED_STATUS: expected response must be explicit in OpenAPI"
                 )
-            fixture = _fixture_for(operation_doc, scenario.expected_statuses)
+            fixture = _fixture_for(operation_doc, scenario.expected_statuses, authenticated)
             if (
                 scenario.kind == "negative"
                 and not set(scenario.expected_statuses) <= {400, 422}
@@ -208,20 +207,47 @@ def _errors(schema, value):
     return list(validator(schema, format_checker=FormatChecker()).iter_errors(value))
 
 
-def _fixture_for(operation_doc, expected_statuses):
+def _fixture_for(operation_doc, expected_statuses, authenticated=False):
     if len(expected_statuses) != 1:
         return None
-    fixture = operation_doc.get("x-specvora-test-fixtures", {}).get(str(expected_statuses[0]))
+    status = str(expected_statuses[0])
+    candidates = []
+    definitions = (
+        (
+            "x-specvora-auth-fixtures",
+            "X-Specvora-Auth-Fixture",
+            {"valid", "missing", "expired", "insufficient-scope"},
+        ),
+        (
+            "x-specvora-dependency-fixtures",
+            "X-Specvora-Dependency-Fixture",
+            {"unavailable", "timeout"},
+        ),
+        ("x-specvora-test-fixtures", "X-Specvora-Fixture", None),
+    )
+    for extension, header, allowed_values in definitions:
+        fixture = operation_doc.get(extension, {}).get(status)
+        if fixture is not None:
+            candidates.append((fixture, header, allowed_values))
+    if len(candidates) > 1:
+        raise ValueError("INVALID_FIXTURE: multiple adapters target the same status")
+    if not candidates:
+        if authenticated:
+            raise ValueError("FIXTURE_REQUIRED: authenticated operation needs a declared adapter")
+        return None
+    fixture, header, allowed_values = candidates[0]
     if fixture is None:
         return None
     if not isinstance(fixture, dict) or set(fixture) != {"kind", "name", "value"}:
         raise ValueError("INVALID_FIXTURE: expected kind, name and value only")
-    if fixture["kind"] != "request-header" or fixture["name"] != "X-Specvora-Fixture":
-        raise ValueError("INVALID_FIXTURE: only the dedicated fixture header is allowed")
+    if fixture["kind"] != "request-header" or fixture["name"] != header:
+        raise ValueError("INVALID_FIXTURE: adapter must use its dedicated fixture header")
     if not isinstance(fixture["value"], str) or not re.fullmatch(
         r"[a-z0-9][a-z0-9-]{0,63}", fixture["value"]
     ):
         raise ValueError("INVALID_FIXTURE: unsafe fixture value")
+    if allowed_values is not None and fixture["value"] not in allowed_values:
+        raise ValueError("INVALID_FIXTURE: unsupported adapter state")
     return {fixture["name"]: fixture["value"]}
 
 
