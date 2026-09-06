@@ -26,7 +26,7 @@
 ## Next modules
 
 1. Add external identity federation and phishing-resistant MFA.
-2. Replace local SQLite session state with a centralized multi-node datastore.
+2. Implement the portal state contract on a centralized multi-node datastore.
 3. Add a managed-secret provider with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
@@ -111,6 +111,13 @@
 - [x] Claim TOTP counters atomically and reject concurrent replay.
 - [x] Preserve an explicit compatibility fallback for local Module 27 environments.
 - [ ] Replace SQLite with a centralized datastore before multi-node production deployment.
+
+## Module 29 checkpoint
+
+- [x] Decouple portal authentication from the concrete SQLite state implementation.
+- [x] Select the local backend explicitly and preserve database-path compatibility.
+- [x] Fail closed for unknown backends and incomplete configuration.
+- [ ] Implement and verify a centralized backend before multi-node deployment.
 
 ## Module 17 checkpoint
 

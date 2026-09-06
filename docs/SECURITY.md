@@ -45,6 +45,10 @@ server-side revocation and a conditional transactional claim prevents concurrent
 counter on one host. SQLite is not the promised multi-node store; network filesystems, replication,
 retention, centralized availability and transport security remain outside this local boundary.
 
+Module 29 introduces a persistence protocol and explicit backend selection. Unsupported or
+incomplete configurations fail closed. This abstraction provides no distributed guarantee by
+itself; every centralized implementation must independently prove atomicity and revocation.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.

@@ -95,6 +95,9 @@ SQLite status, a button click, and a model response are not independent release 
 
 ## Trainer checklist
 
+Module 29: use `docs/training/MODULE_29_LAB.md` to verify backend selection, fail-closed
+configuration and the guarantees required from a future centralized adapter.
+
 Module 28: use `docs/training/MODULE_28_LAB.md` to demonstrate durable logout, concurrent TOTP
 replay rejection and the boundary between transactional local state and distributed storage.
 
