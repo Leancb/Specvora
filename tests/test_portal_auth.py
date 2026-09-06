@@ -161,6 +161,9 @@ def test_setup_script_uses_windows_powershell_compatible_random_generator():
     assert "RandomNumberGenerator]::Create()" in script
     assert "$generator.GetBytes($bytes)" in script
     assert "RandomNumberGenerator]::Fill" not in script
+    enrollment = Path("scripts/enable-portal-mfa.ps1").read_text(encoding="utf-8")
+    assert "-ApproveEnrollment" in enrollment
+    assert "--enrollment-out" in enrollment
 
 
 def test_totp_matches_rfc_vector_and_rejects_replay(configured_auth):
