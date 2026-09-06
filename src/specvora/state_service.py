@@ -6,6 +6,7 @@ import hmac
 import os
 from datetime import datetime
 from pathlib import Path
+from threading import Lock
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
@@ -14,6 +15,8 @@ from pydantic import BaseModel, Field
 from specvora.portal_session_store import PortalSessionStore
 
 app = FastAPI(title="Specvora Portal State Service", version="0.1.0", docs_url=None)
+_stores: dict[str, PortalSessionStore] = {}
+_stores_lock = Lock()
 
 
 class MfaClaim(BaseModel):
@@ -35,11 +38,20 @@ def _authorize(authorization: Annotated[str | None, Header()] = None) -> None:
         raise HTTPException(status_code=401, detail="State service authentication failed")
 
 
+def _store_for_path(path: str) -> PortalSessionStore:
+    with _stores_lock:
+        store = _stores.get(path)
+        if store is None:
+            store = PortalSessionStore(Path(path))
+            _stores[path] = store
+        return store
+
+
 def _store() -> PortalSessionStore:
     path = os.getenv("SPECVORA_STATE_SERVICE_DB")
     if not path:
         raise HTTPException(status_code=503, detail="State service storage is unavailable")
-    return PortalSessionStore(Path(path))
+    return _store_for_path(str(Path(path).resolve()))
 
 
 Authorized = Annotated[None, Depends(_authorize)]
