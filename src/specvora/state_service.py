@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from specvora.portal_session_store import PortalSessionStore
 
@@ -30,12 +31,54 @@ class SessionRegistration(BaseModel):
     expires_at: datetime
 
 
+class ServiceTokenDigest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    token_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    not_before: datetime
+    expires_at: datetime
+
+
+class ServiceTokenTrust(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: Literal["specvora-state-service-trust-v1"]
+    tokens: list[ServiceTokenDigest] = Field(min_length=1, max_length=8)
+
+
 def _authorize(authorization: Annotated[str | None, Header()] = None) -> None:
-    token = os.getenv("SPECVORA_STATE_SERVICE_TOKEN", "")
-    if len(token) < 32 or not authorization or not hmac.compare_digest(
-        authorization, f"Bearer {token}"
+    supplied = authorization.removeprefix("Bearer ") if authorization else ""
+    if (
+        not authorization
+        or not authorization.startswith("Bearer ")
+        or not 32 <= len(supplied) <= 4096
+        or any(character.isspace() for character in supplied)
+        or not _token_is_trusted(supplied)
     ):
         raise HTTPException(status_code=401, detail="State service authentication failed")
+
+
+def _token_is_trusted(supplied: str) -> bool:
+    trust_path = os.getenv("SPECVORA_STATE_SERVICE_TOKEN_FILE")
+    if not trust_path:
+        token = os.getenv("SPECVORA_STATE_SERVICE_TOKEN", "")
+        return len(token) >= 32 and hmac.compare_digest(supplied, token)
+    try:
+        raw = Path(trust_path).read_bytes()
+        if len(raw) > 65_536:
+            return False
+        trust = ServiceTokenTrust.model_validate_json(raw)
+        now = datetime.now(UTC)
+        supplied_digest = hashlib.sha256(supplied.encode("utf-8")).hexdigest()
+        active = []
+        for token in trust.tokens:
+            if token.not_before.tzinfo is None or token.expires_at.tzinfo is None:
+                return False
+            if token.not_before >= token.expires_at:
+                return False
+            if token.not_before <= now < token.expires_at:
+                active.append(token.token_sha256)
+        return any(hmac.compare_digest(supplied_digest, digest) for digest in active)
+    except (OSError, ValueError, ValidationError):
+        return False
 
 
 def _store_for_path(path: str) -> PortalSessionStore:
