@@ -49,6 +49,10 @@ Module 29 introduces a persistence protocol and explicit backend selection. Unsu
 incomplete configurations fail closed. This abstraction provides no distributed guarantee by
 itself; every centralized implementation must independently prove atomicity and revocation.
 
+Module 30 adds an HTTPS-only client for that centralized contract. Service credentials are sent
+only in an Authorization header, redirects and ambient proxy settings are disabled, and network or
+schema failures fail closed. The remote service itself is not included or independently verified.
+
 ## Trust boundaries
 
 - Requirements, OpenAPI files, generated code, and AI output are untrusted inputs.

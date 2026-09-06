@@ -71,6 +71,10 @@ Module 28 demo: copy a laboratory session, log out and show server-side rejectio
 cookie. Run concurrent claims for one TOTP counter and show one winner, then distinguish this
 single-host SQLite transaction from a production distributed session service.
 
+Module 30 demo: switch the same portal contract to the HTTPS adapter, reject plaintext endpoints
+and malformed responses, and explain that the client is implemented while deployment and
+independent verification of the centralized service remain pending.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,
