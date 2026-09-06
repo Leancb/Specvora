@@ -251,7 +251,7 @@ def prepare_review_approval(
 
 
 @app.post("/analyze")
-def analyze_project(request: AnalyzeRequest) -> dict[str, object]:
+def analyze_project(request: AnalyzeRequest, _identity: PortalOperator) -> dict[str, object]:
     try:
         result, files = run_analysis(request.project_file, request.workspace_root)
     except (ValueError, OSError) as exc:
@@ -265,7 +265,7 @@ def analyze_project(request: AnalyzeRequest) -> dict[str, object]:
 
 
 @app.post("/assess", response_model=ConfidenceAssessment)
-def assess_results(request: AssessRequest) -> ConfidenceAssessment:
+def assess_results(request: AssessRequest, _identity: PortalOperator) -> ConfidenceAssessment:
     try:
         assessment = assess_release(request.result)
         append_assessment(request.audit_log, assessment)
@@ -275,7 +275,7 @@ def assess_results(request: AssessRequest) -> ConfidenceAssessment:
 
 
 @app.post("/ingest/pytest", response_model=PytestEvidence)
-def ingest_pytest(request: PytestIngestRequest) -> PytestEvidence:
+def ingest_pytest(request: PytestIngestRequest, _identity: PortalReader) -> PytestEvidence:
     try:
         return ingest_pytest_report(request)
     except (ValueError, OSError) as exc:
