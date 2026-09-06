@@ -28,6 +28,7 @@ workspaces/**/*.jsonl
 /bindings*.json
 /petstore-demo/
 /.specvora-ci/
+/.specvora-auth/
 /ci/runtime/
 /ci/evidence/
 !workspaces/.gitkeep

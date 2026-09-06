@@ -1,0 +1,38 @@
+[CmdletBinding()]
+param(
+    [string]$WorkspaceRoot = (Resolve-Path "$PSScriptRoot\.."),
+    [string]$Username = "leandro",
+    [string]$DisplayName = "Leandro do Couto Brum",
+    [string[]]$Roles = @("reviewer", "operator"),
+    [switch]$ApproveSetup
+)
+
+$ErrorActionPreference = "Stop"
+if (-not $ApproveSetup) {
+    throw "Revise usuario e papeis e use -ApproveSetup."
+}
+$root = [IO.Path]::GetFullPath($WorkspaceRoot)
+$auth = Join-Path $root ".specvora-auth"
+$users = Join-Path $auth "users.json"
+$sessionKey = Join-Path $auth "session.key"
+[IO.Directory]::CreateDirectory($auth) | Out-Null
+if (-not (Test-Path -LiteralPath $sessionKey -PathType Leaf)) {
+    $bytes = [byte[]]::new(32)
+    [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+    [IO.File]::WriteAllBytes($sessionKey, $bytes)
+    Write-Host "Nova chave de sessao criada; ela nao sera exibida."
+}
+$arguments = @(
+    "--workspace-root", $root, "create-portal-user",
+    "--users-file", $users, "--username", $Username, "--display-name", $DisplayName
+)
+foreach ($role in $Roles) { $arguments += @("--role", $role) }
+& (Join-Path $root ".venv\Scripts\specvora-governance.exe") @arguments
+if ($LASTEXITCODE -ne 0) { throw "Falha ao criar usuario do portal." }
+$env:SPECVORA_PORTAL_AUTH_MODE = "required"
+$env:SPECVORA_PORTAL_USERS_FILE = $users
+$env:SPECVORA_PORTAL_SESSION_KEY = $sessionKey
+$env:SPECVORA_PORTAL_SESSION_MINUTES = "30"
+$env:SPECVORA_PORTAL_COOKIE_SECURE = "false"
+Write-Host "Autenticacao aplicada somente a este PowerShell."
+Write-Host "Inicie o portal em 127.0.0.1; para HTTPS, habilite cookie seguro."

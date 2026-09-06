@@ -1,4 +1,5 @@
 import json
+import sys
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 from specvora.portal_auth import (
     PortalUser,
     SessionIdentity,
+    add_portal_user,
     authenticate,
     hash_password,
     issue_session,
@@ -96,3 +98,56 @@ def test_roles_grant_only_explicit_capabilities():
     require_capability(identity, "review")
     with pytest.raises(ValueError, match="not authorized"):
         require_capability(identity, "manage")
+
+
+def test_add_portal_user_writes_only_hash_and_rejects_duplicate(tmp_path):
+    target = tmp_path / "auth/users.json"
+    user = add_portal_user(
+        target,
+        "operator.one",
+        "Operator One",
+        ["operator", "reviewer"],
+        "operator-password-long",
+    )
+    assert user.roles == ["operator", "reviewer"]
+    content = target.read_text(encoding="utf-8")
+    assert "operator-password-long" not in content
+    assert "pbkdf2-sha256$600000$" in content
+    with pytest.raises(ValueError, match="already exists"):
+        add_portal_user(
+            target, "operator.one", "Operator One", ["operator"], "another-password-long"
+        )
+
+
+def test_create_portal_user_cli_prompts_without_password_argument(
+    tmp_path, monkeypatch, capsys
+):
+    from specvora.governance_cli import main
+
+    target = tmp_path / "auth/users.json"
+    prompts = iter(["operator-password-long", "operator-password-long"])
+    monkeypatch.setattr("getpass.getpass", lambda _prompt: next(prompts))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "specvora-governance",
+            "--workspace-root",
+            str(tmp_path),
+            "create-portal-user",
+            "--users-file",
+            str(target),
+            "--username",
+            "operator.one",
+            "--display-name",
+            "Operator One",
+            "--role",
+            "operator",
+            "--role",
+            "reviewer",
+        ],
+    )
+    main()
+    result = json.loads(capsys.readouterr().out)
+    assert result["roles"] == ["operator", "reviewer"]
+    assert target.is_file()

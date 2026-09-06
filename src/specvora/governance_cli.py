@@ -1,6 +1,7 @@
 """Operator-only interface. Private keys are never accepted by the web portal."""
 
 import argparse
+import getpass
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -10,6 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from specvora.authorization import execution_action
 from specvora.combined_release import CombinedReleaseRequest, assess_combined
 from specvora.playwright_runner import PlaywrightRunnerRequest
+from specvora.portal_auth import add_portal_user
 from specvora.runner import RunnerRequest
 from specvora.signed_approval import (
     ApprovalClaims,
@@ -31,6 +33,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="specvora-governance")
     parser.add_argument("--workspace-root", type=Path, required=True)
     commands = parser.add_subparsers(dest="command", required=True)
+    portal_user = commands.add_parser("create-portal-user")
+    portal_user.add_argument("--users-file", type=Path, required=True)
+    portal_user.add_argument("--username", required=True)
+    portal_user.add_argument("--display-name", required=True)
+    portal_user.add_argument(
+        "--role", action="append", choices=["viewer", "reviewer", "operator"], required=True
+    )
     prepare = commands.add_parser("prepare-execution")
     prepare.add_argument("input", type=Path, help="Runner request JSON")
     prepare.add_argument("--kind", choices=["api", "browser"], required=True)
@@ -54,6 +63,17 @@ def main() -> None:
         if command == "consume":
             verification.add_argument("--ledger", type=Path, required=True)
     args = parser.parse_args()
+    if args.command == "create-portal-user":
+        password = getpass.getpass("Portal password: ")
+        confirmation = getpass.getpass("Confirm portal password: ")
+        if password != confirmation:
+            raise ValueError("Portal password confirmation does not match")
+        target = confined(args.users_file, args.workspace_root)
+        user = add_portal_user(
+            target, args.username, args.display_name, list(dict.fromkeys(args.role)), password
+        )
+        print(json.dumps({"username": user.username, "roles": user.roles, "output": str(target)}))
+        return
     raw = confined(args.input, args.workspace_root).read_bytes()
     if args.command == "prepare-execution":
         request_type = RunnerRequest if args.kind == "api" else PlaywrightRunnerRequest

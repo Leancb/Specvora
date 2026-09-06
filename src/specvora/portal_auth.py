@@ -141,6 +141,37 @@ def require_capability(identity: SessionIdentity, capability: Capability) -> Non
         raise ValueError("Portal role is not authorized for this action")
 
 
+def add_portal_user(
+    users_file: Path,
+    username: str,
+    display_name: str,
+    roles: list[Role],
+    password: str,
+) -> PortalUser:
+    user = PortalUser(
+        username=username,
+        display_name=display_name,
+        roles=roles,
+        password_hash=hash_password(password),
+    )
+    if users_file.exists():
+        store = PortalUsers.model_validate_json(users_file.read_bytes())
+    else:
+        store = PortalUsers(users=[])
+    if any(existing.username == username for existing in store.users):
+        raise ValueError("Portal user already exists")
+    store.users.append(user)
+    users_file.parent.mkdir(parents=True, exist_ok=True)
+    temporary = users_file.with_name(f".{users_file.name}.{secrets.token_hex(8)}.tmp")
+    try:
+        with temporary.open("x", encoding="utf-8", newline="\n") as stream:
+            stream.write(store.model_dump_json(indent=2) + "\n")
+        temporary.replace(users_file)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return user
+
+
 def _load_users() -> PortalUsers:
     path = os.getenv("SPECVORA_PORTAL_USERS_FILE")
     if not path:

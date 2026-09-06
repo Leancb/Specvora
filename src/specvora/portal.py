@@ -224,14 +224,33 @@ body{font:16px system-ui;max-width:1100px;margin:40px auto;padding:0 20px;color:
 h1{margin-bottom:4px}.notice{background:#fff4ce;padding:12px;border-left:4px solid #b7791f}
 table{width:100%;border-collapse:collapse;margin-top:24px}
 th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
-.PENDING{color:#9c5700}.REVIEWED{color:#217346}code{font-size:13px}</style></head><body>
+.PENDING{color:#9c5700}.REVIEWED{color:#217346}code{font-size:13px}
+input{display:block;margin:8px 0;padding:8px;min-width:280px}</style></head><body>
 <h1>Specvora human review</h1><p>AI proposes. Policies validate. People authorize.</p>
-<p class="notice">Local training portal. Login authentication is not implemented.</p>
+<p class="notice">Local training portal. Enable required authentication before network exposure.</p>
 <p>Signed approvals are required by default. Private keys must remain offline.</p>
+<section id="login" hidden><h2>Sign in</h2><input id="username" autocomplete="username"
+ placeholder="Username"><input id="password" type="password" autocomplete="current-password"
+ placeholder="Password"><button onclick="loginPortal()">Sign in</button></section>
+<div id="portal-content" hidden><p id="identity"></p>
+<button onclick="logoutPortal()">Sign out</button>
 <h2>Projects</h2><table id="projects"><tbody></tbody></table>
 <h2>Review queue</h2><table id="reviews"><tbody></tbody></table>
+</div>
 <script>
+let csrf='';
+async function api(url,options={}){
+ const method=(options.method||'GET').toUpperCase();options.headers=options.headers||{};
+ if(!['GET','HEAD'].includes(method))options.headers['X-Specvora-CSRF']=csrf;
+ return fetch(url,options);
+}
 async function load(){
+ const session=await fetch('/api/session');
+ if(!session.ok){document.getElementById('login').hidden=false;return;}
+ const who=await session.json();csrf=who.csrf_token;
+ document.getElementById('identity').innerText=
+  `Signed in: ${who.display_name} (${who.roles.join(', ')})`;
+ document.getElementById('portal-content').hidden=false;
  const [p,r]=await Promise.all([fetch('/api/projects'),fetch('/api/reviews')]);
  for(const x of await p.json()) projects.tBodies[0].insertRow().innerText=x.project_id;
  for(const x of await r.json()){
@@ -245,6 +264,17 @@ async function load(){
   row.className=x.status;
  }
 }
+async function loginPortal(){
+ const response=await fetch('/api/session',{method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({username:document.getElementById('username').value,
+   password:document.getElementById('password').value})});
+ if(!response.ok)return alert((await response.json()).detail);location.reload();
+}
+async function logoutPortal(){
+ const response=await api('/api/session',{method:'DELETE'});
+ if(!response.ok)return alert((await response.json()).detail);location.reload();
+}
 async function decide(id){
  const detail=await (await fetch(`/api/reviews/${id}`)).json();
  const reviewer=prompt('Reviewer full name');if(!reviewer)return;
@@ -257,7 +287,7 @@ async function decide(id){
  }
  if(!confirm('Record this human decision? This action is immutable.'))return;
  const decision={reviewer,approval:'APPROVED_PROPOSAL_PROMOTION',decisions};
- const preview=await fetch(`/api/reviews/${id}/approval-payload`,{method:'POST',
+ const preview=await api(`/api/reviews/${id}/approval-payload`,{method:'POST',
   headers:{'Content-Type':'application/json'},body:JSON.stringify(decision)});
  if(!preview.ok)return alert((await preview.json()).detail);
  const payload=await preview.json();
@@ -269,7 +299,7 @@ async function decide(id){
  if(signed===null)return;
  try{if(signed.trim())decision.signed_approval=JSON.parse(signed);}catch{
   return alert('Invalid signed envelope JSON');}
- const response=await fetch(`/api/reviews/${id}/decision`,{method:'POST',headers:{
+ const response=await api(`/api/reviews/${id}/decision`,{method:'POST',headers:{
   'Content-Type':'application/json'},body:JSON.stringify(decision)});
  if(!response.ok)return alert((await response.json()).detail);
  location.reload();
@@ -290,7 +320,7 @@ async function generatePlan(id){
   bindings.push({scenario_id:scenario.scenario_id,case_id});
  }
  if(!confirm('Generate artifacts only? No tests will execute.'))return;
- const response=await fetch(`/api/reviews/${id}/generation`,{method:'POST',headers:{
+ const response=await api(`/api/reviews/${id}/generation`,{method:'POST',headers:{
   'Content-Type':'application/json'},body:JSON.stringify({plan_id,bindings})});
  const result=await response.json();if(!response.ok)return alert(result.detail);
  alert(`Plan ${result.status}: ${result.output_dir}\nTests generated: ${result.tests_generated}`);
