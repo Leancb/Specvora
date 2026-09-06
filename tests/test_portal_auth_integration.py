@@ -45,6 +45,7 @@ def authenticated_portal(tmp_path, monkeypatch):
     monkeypatch.setenv("SPECVORA_PORTAL_AUTH_MODE", "required")
     monkeypatch.setenv("SPECVORA_PORTAL_USERS_FILE", str(users))
     monkeypatch.setenv("SPECVORA_PORTAL_SESSION_KEY", str(key))
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_DB", str(tmp_path / "auth/session-state.db"))
     monkeypatch.setenv("SPECVORA_PORTAL_COOKIE_SECURE", "false")
     monkeypatch.setenv("SPECVORA_DB_PATH", str(tmp_path / "state/specvora.db"))
     return TestClient(app)
@@ -70,6 +71,9 @@ def test_login_cookie_and_read_authorization(authenticated_portal):
     assert cookie
     assert identity["roles"] == ["reviewer"]
     assert client.get("/api/projects").status_code == 200
+    csrf = identity["csrf_token"]
+    assert client.delete("/api/session", headers={"X-Specvora-CSRF": csrf}).status_code == 204
+    assert client.get("/api/projects").status_code == 401
 
 
 def test_login_requires_mfa_and_rejects_reused_code(authenticated_portal):

@@ -33,6 +33,7 @@ from specvora.portal_auth import (
     issue_session,
     portal_auth_mode,
     require_capability,
+    revoke_portal_session,
     verify_session,
 )
 from specvora.proposal_review import HumanReviewInput
@@ -155,7 +156,12 @@ def get_portal_session(identity: PortalReader) -> dict:
 
 
 @app.delete("/api/session", status_code=204)
-def logout_portal(response: Response, _identity: PortalAuthenticatedWriter) -> None:
+def logout_portal(
+    request: Request, response: Response, _identity: PortalAuthenticatedWriter
+) -> None:
+    token = request.cookies.get(SESSION_COOKIE)
+    if token:
+        revoke_portal_session(token)
     response.delete_cookie(SESSION_COOKIE, path="/")
 
 

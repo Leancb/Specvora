@@ -15,6 +15,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from specvora.portal_session_store import PortalSessionStore
+
 PASSWORD_ITERATIONS = 600_000
 Role = Literal["viewer", "reviewer", "operator"]
 Capability = Literal["read", "review", "manage"]
@@ -93,12 +95,17 @@ def authenticate(
         raise ValueError("Invalid portal credentials")
     if user.totp_secret:
         counter = verify_totp(user.totp_secret, totp_code or "", now=now)
-        if counter is None or (
-            user.last_totp_counter is not None and counter <= user.last_totp_counter
-        ):
+        if counter is None:
             raise ValueError("Invalid portal credentials")
-        user.last_totp_counter = counter
-        _write_users(_users_path(), users)
+        store = _state_store()
+        if store:
+            if not store.claim_mfa_counter(user.username, counter):
+                raise ValueError("Invalid portal credentials")
+        else:
+            if user.last_totp_counter is not None and counter <= user.last_totp_counter:
+                raise ValueError("Invalid portal credentials")
+            user.last_totp_counter = counter
+            _write_users(_users_path(), users)
     return user
 
 
@@ -132,11 +139,13 @@ def issue_session(user: PortalUser, *, now: datetime | None = None) -> tuple[str
     issued = now or datetime.now(UTC)
     expires = issued + timedelta(minutes=_session_minutes())
     csrf = secrets.token_urlsafe(24)
+    session_id = secrets.token_urlsafe(24)
     payload = {
         "version": "specvora-session-v1",
         "username": user.username,
         "session_version": user.session_version,
         "csrf": csrf,
+        "session_id": session_id,
         "issued_at": issued.isoformat(),
         "expires_at": expires.isoformat(),
     }
@@ -149,6 +158,8 @@ def issue_session(user: PortalUser, *, now: datetime | None = None) -> tuple[str
         csrf_token=csrf,
         expires_at=expires,
     )
+    if store := _state_store():
+        store.register_session(session_id, user.username, expires)
     return f"{encoded}.{signature}", identity
 
 
@@ -160,7 +171,12 @@ def verify_session(token: str, *, now: datetime | None = None) -> SessionIdentit
             raise ValueError
         payload = json.loads(_decode(encoded))
         expires = datetime.fromisoformat(payload["expires_at"])
-        if payload["version"] != "specvora-session-v1" or (now or datetime.now(UTC)) >= expires:
+        instant = now or datetime.now(UTC)
+        if payload["version"] != "specvora-session-v1" or instant >= expires:
+            raise ValueError
+        if (store := _state_store()) and not store.session_is_active(
+            payload["session_id"], instant
+        ):
             raise ValueError
         user = next(
             item for item in _load_users().users if item.username == payload["username"]
@@ -176,6 +192,17 @@ def verify_session(token: str, *, now: datetime | None = None) -> SessionIdentit
         )
     except (ValueError, KeyError, TypeError, StopIteration, json.JSONDecodeError) as exc:
         raise ValueError("Portal session is invalid or expired") from exc
+
+
+def revoke_portal_session(token: str) -> None:
+    if not (store := _state_store()):
+        return
+    try:
+        encoded, _signature = token.split(".", 1)
+        session_id = json.loads(_decode(encoded))["session_id"]
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("Portal session is invalid or expired") from exc
+    store.revoke_session(session_id)
 
 
 def require_capability(identity: SessionIdentity, capability: Capability) -> None:
@@ -264,6 +291,11 @@ def _session_minutes() -> int:
     if not 5 <= minutes <= 480:
         raise ValueError("Portal session duration must be between 5 and 480 minutes")
     return minutes
+
+
+def _state_store() -> PortalSessionStore | None:
+    path = os.getenv("SPECVORA_PORTAL_STATE_DB")
+    return PortalSessionStore(Path(path)) if path else None
 
 
 def _encode(value: bytes) -> str:
