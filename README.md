@@ -2,7 +2,7 @@
 
 **Autonomous Quality Engineering — from requirements to release confidence.**
 
-**Autor e fundador:** Leandro Brum [https://github.com/Leancb/](https://www.linkedin.com/in/leandro-brum-a5a8ab31/)
+**Autor e fundador:** Leandro Brum https://www.linkedin.com/in/leandro-brum-a5a8ab31/
 
 Specvora transforma requisitos e contratos OpenAPI em uma estratégia de qualidade
 rastreável, um projeto de testes automatizados e uma decisão objetiva para a esteira
