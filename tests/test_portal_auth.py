@@ -10,9 +10,11 @@ from specvora.portal_auth import (
     SessionIdentity,
     add_portal_user,
     authenticate,
+    enable_portal_mfa,
     hash_password,
     issue_session,
     require_capability,
+    totp_code,
     verify_password,
     verify_session,
 )
@@ -159,3 +161,30 @@ def test_setup_script_uses_windows_powershell_compatible_random_generator():
     assert "RandomNumberGenerator]::Create()" in script
     assert "$generator.GetBytes($bytes)" in script
     assert "RandomNumberGenerator]::Fill" not in script
+
+
+def test_totp_matches_rfc_vector_and_rejects_replay(configured_auth):
+    # RFC 6238 SHA-1 seed; the 8-digit vector at 59 seconds is 94287082.
+    secret = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"
+    instant = datetime.fromtimestamp(59, UTC)
+    assert totp_code(secret, now=instant, digits=8) == "94287082"
+    data = json.loads(configured_auth.read_text(encoding="utf-8"))
+    data["users"][0]["totp_secret"] = secret
+    configured_auth.write_text(json.dumps(data), encoding="utf-8")
+    code = totp_code(secret, now=instant)
+    user = authenticate(
+        "reviewer.one", "correct horse battery staple", code, now=instant
+    )
+    assert user.last_totp_counter == 1
+    with pytest.raises(ValueError, match="credentials"):
+        authenticate("reviewer.one", "correct horse battery staple", code, now=instant)
+
+
+def test_enable_mfa_rotates_sessions_and_returns_enrollment(configured_auth):
+    before = json.loads(configured_auth.read_text(encoding="utf-8"))["users"][0]
+    user, uri = enable_portal_mfa(configured_auth, "reviewer.one")
+    assert user.session_version == before["session_version"] + 1
+    assert uri.startswith("otpauth://totp/Specvora:reviewer.one?secret=")
+    assert user.totp_secret in uri
+    with pytest.raises(ValueError, match="already enabled"):
+        enable_portal_mfa(configured_auth, "reviewer.one")

@@ -8,6 +8,7 @@ import hmac
 import json
 import os
 import secrets
+import struct
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
@@ -32,6 +33,8 @@ class PortalUser(BaseModel):
     password_hash: str
     active: bool = True
     session_version: int = Field(default=1, ge=1)
+    totp_secret: str | None = Field(default=None, min_length=32, max_length=128)
+    last_totp_counter: int | None = Field(default=None, ge=0)
 
 
 class PortalUsers(BaseModel):
@@ -77,12 +80,52 @@ def verify_password(password: str, encoded: str) -> bool:
         return False
 
 
-def authenticate(username: str, password: str) -> PortalUser:
+def authenticate(
+    username: str,
+    password: str,
+    totp_code: str | None = None,
+    *,
+    now: datetime | None = None,
+) -> PortalUser:
     users = _load_users()
     user = next((item for item in users.users if item.username == username), None)
     if user is None or not user.active or not verify_password(password, user.password_hash):
         raise ValueError("Invalid portal credentials")
+    if user.totp_secret:
+        counter = verify_totp(user.totp_secret, totp_code or "", now=now)
+        if counter is None or (
+            user.last_totp_counter is not None and counter <= user.last_totp_counter
+        ):
+            raise ValueError("Invalid portal credentials")
+        user.last_totp_counter = counter
+        _write_users(_users_path(), users)
     return user
+
+
+def generate_totp_secret() -> str:
+    return base64.b32encode(secrets.token_bytes(20)).decode("ascii").rstrip("=")
+
+
+def totp_code(secret: str, *, now: datetime | None = None, digits: int = 6) -> str:
+    instant = now or datetime.now(UTC)
+    counter = int(instant.timestamp()) // 30
+    key = base64.b32decode(secret + "=" * (-len(secret) % 8), casefold=True)
+    digest = hmac.digest(key, struct.pack(">Q", counter), "sha1")
+    offset = digest[-1] & 0x0F
+    value = struct.unpack(">I", digest[offset : offset + 4])[0] & 0x7FFFFFFF
+    return str(value % (10**digits)).zfill(digits)
+
+
+def verify_totp(secret: str, code: str, *, now: datetime | None = None) -> int | None:
+    if len(code) != 6 or not code.isascii() or not code.isdigit():
+        return None
+    instant = now or datetime.now(UTC)
+    current = int(instant.timestamp()) // 30
+    for counter in range(current - 1, current + 2):
+        candidate_time = datetime.fromtimestamp(counter * 30, UTC)
+        if hmac.compare_digest(totp_code(secret, now=candidate_time), code):
+            return counter
+    return None
 
 
 def issue_session(user: PortalUser, *, now: datetime | None = None) -> tuple[str, SessionIdentity]:
@@ -161,6 +204,27 @@ def add_portal_user(
     if any(existing.username == username for existing in store.users):
         raise ValueError("Portal user already exists")
     store.users.append(user)
+    _write_users(users_file, store)
+    return user
+
+
+def enable_portal_mfa(users_file: Path, username: str) -> tuple[PortalUser, str]:
+    store = PortalUsers.model_validate_json(users_file.read_bytes())
+    user = next((item for item in store.users if item.username == username), None)
+    if user is None:
+        raise ValueError("Portal user does not exist")
+    if user.totp_secret:
+        raise ValueError("Portal MFA is already enabled")
+    user.totp_secret = generate_totp_secret()
+    user.last_totp_counter = None
+    user.session_version += 1
+    _write_users(users_file, store)
+    label = f"Specvora:{username}"
+    uri = f"otpauth://totp/{label}?secret={user.totp_secret}&issuer=Specvora&digits=6&period=30"
+    return user, uri
+
+
+def _write_users(users_file: Path, store: PortalUsers) -> None:
     users_file.parent.mkdir(parents=True, exist_ok=True)
     temporary = users_file.with_name(f".{users_file.name}.{secrets.token_hex(8)}.tmp")
     try:
@@ -169,14 +233,17 @@ def add_portal_user(
         temporary.replace(users_file)
     finally:
         temporary.unlink(missing_ok=True)
-    return user
 
 
 def _load_users() -> PortalUsers:
+    return PortalUsers.model_validate_json(_users_path().read_bytes())
+
+
+def _users_path() -> Path:
     path = os.getenv("SPECVORA_PORTAL_USERS_FILE")
     if not path:
         raise ValueError("Portal user configuration is missing")
-    return PortalUsers.model_validate_json(Path(path).read_bytes())
+    return Path(path)
 
 
 def _session_key() -> bytes:

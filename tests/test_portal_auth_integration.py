@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from test_portal import workspace
 
 from specvora.main import app
-from specvora.portal_auth import hash_password
+from specvora.portal_auth import hash_password, totp_code
 
 
 @pytest.fixture
@@ -27,6 +27,13 @@ def authenticated_portal(tmp_path, monkeypatch):
                         "display_name": "Operator One",
                         "roles": ["operator"],
                         "password_hash": hash_password("operator-password-long"),
+                    },
+                    {
+                        "username": "mfa.one",
+                        "display_name": "MFA One",
+                        "roles": ["viewer"],
+                        "password_hash": hash_password("mfa-password-long"),
+                        "totp_secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
                     },
                 ]
             }
@@ -63,6 +70,15 @@ def test_login_cookie_and_read_authorization(authenticated_portal):
     assert cookie
     assert identity["roles"] == ["reviewer"]
     assert client.get("/api/projects").status_code == 200
+
+
+def test_login_requires_mfa_and_rejects_reused_code(authenticated_portal):
+    client = authenticated_portal
+    payload = {"username": "mfa.one", "password": "mfa-password-long"}
+    assert client.post("/api/session", json=payload).status_code == 401
+    payload["totp_code"] = totp_code("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ")
+    assert client.post("/api/session", json=payload).status_code == 200
+    assert client.post("/api/session", json=payload).status_code == 401
 
 
 def test_roles_csrf_and_reviewer_identity_are_enforced(

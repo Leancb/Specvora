@@ -231,7 +231,8 @@ input{display:block;margin:8px 0;padding:8px;min-width:280px}</style></head><bod
 <p>Signed approvals are required by default. Private keys must remain offline.</p>
 <section id="login" hidden><h2>Sign in</h2><input id="username" autocomplete="username"
  placeholder="Username"><input id="password" type="password" autocomplete="current-password"
- placeholder="Password"><button onclick="loginPortal()">Sign in</button></section>
+ placeholder="Password"><input id="totp" inputmode="numeric" autocomplete="one-time-code"
+ placeholder="MFA code (if enabled)"><button onclick="loginPortal()">Sign in</button></section>
 <div id="portal-content" hidden><p id="identity"></p>
 <button onclick="logoutPortal()">Sign out</button>
 <h2>Projects</h2><table id="projects"><tbody></tbody></table>
@@ -268,7 +269,8 @@ async function loginPortal(){
  const response=await fetch('/api/session',{method:'POST',
   headers:{'Content-Type':'application/json'},
   body:JSON.stringify({username:document.getElementById('username').value,
-   password:document.getElementById('password').value})});
+   password:document.getElementById('password').value,
+   totp_code:document.getElementById('totp').value||null})});
  if(!response.ok)return alert((await response.json()).detail);location.reload();
 }
 async function logoutPortal(){
