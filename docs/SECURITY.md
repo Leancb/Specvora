@@ -98,3 +98,6 @@ capabilities. Signed approvals and secret brokering remain post-MVP hardening it
 The local JSON identity store is not a production identity provider. Do not expose the portal on
 an untrusted network without required mode, HTTPS, secure cookies, rate limiting, MFA and an
 operational identity lifecycle.
+The central state service bearer is a local integration credential, not workload identity. Its
+SQLite backend preserves atomicity on one host only; production requires TLS, tenant isolation,
+managed rotation, availability controls and an operated transactional datastore.

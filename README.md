@@ -116,6 +116,10 @@ SQLite local e preparando um adaptador centralizado verificável.
 O módulo 30 implementa o cliente HTTPS desse contrato, com autenticação de serviço em runtime,
 timeout e validação estrita. O serviço central continua uma implantação independente.
 
+O módulo 31 implementa o serviço central do contrato para integração controlada, preservando
+sessões revogáveis e consumo atômico de MFA. O backend SQLite e o bearer estático continuam sendo
+fronteiras de treinamento; produção exige datastore operado, TLS e identidade de workload.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

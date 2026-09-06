@@ -75,6 +75,10 @@ Module 30 demo: switch the same portal contract to the HTTPS adapter, reject pla
 and malformed responses, and explain that the client is implemented while deployment and
 independent verification of the centralized service remain pending.
 
+Module 31 demo: run the dedicated state service on loopback, reject an unauthenticated state
+request, complete a session lifecycle and race the same MFA counter. Explain that this verifies
+the service contract and single-host transaction, not a production deployment.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

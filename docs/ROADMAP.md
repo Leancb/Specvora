@@ -26,7 +26,7 @@
 ## Next modules
 
 1. Add external identity federation and phishing-resistant MFA.
-2. Implement and deploy the centralized portal state service behind the HTTP adapter.
+2. Move the centralized portal state service to an operated datastore and workload identity.
 3. Add a managed-secret provider with workload identity and auditable short-lived leases.
 
 ## Module 19 checkpoint
@@ -125,7 +125,16 @@
 - [x] Require runtime service authentication and reject unsafe endpoints.
 - [x] Disable redirects and ambient proxy configuration.
 - [x] Validate response statuses and schemas without leaking remote details.
-- [ ] Deploy and independently verify the centralized state service.
+- [x] Implement and independently verify a loopback centralized state service.
+- [ ] Deploy it with an operated datastore, TLS and workload identity.
+
+## Module 31 checkpoint
+
+- [x] Expose the portal state contract through a dedicated FastAPI service.
+- [x] Authenticate every state mutation and lookup with a runtime bearer credential.
+- [x] Preserve atomic MFA claims and revocable sessions through transactional SQLite.
+- [x] Verify concurrent claims, lifecycle behavior and fail-closed configuration.
+- [ ] Replace the training bearer and SQLite storage before production deployment.
 
 ## Module 17 checkpoint
 
