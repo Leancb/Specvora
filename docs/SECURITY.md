@@ -128,3 +128,7 @@ Module 39 exposes fixed start and callback routes. The callback never accepts a 
 never reflects provider errors and issues only the existing revocable local session. External
 claims cannot create users or grant roles. Provider onboarding and key rotation remain explicit
 deployment responsibilities.
+
+Module 40 pins discovery to the configured issuer and constrains all metadata endpoints to exact
+HTTPS host allowlists. JWKS changes require valid RSA keys, staged key-ID overlap, explicit
+operator intent and atomic replacement. Discovery cannot silently redefine identity trust.

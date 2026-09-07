@@ -150,6 +150,10 @@ autoridade para aprovar execução ou release.
 O módulo 39 conecta esse fluxo às rotas do portal e à sessão local revogável. O provedor confirma
 a identidade, mas usuários ativos, papéis e capacidades continuam definidos pelo Specvora.
 
+O módulo 40 adiciona descoberta OIDC sob issuer fixado e rotação JWKS controlada. Hosts são
+permitidos explicitamente, a troca exige sobreposição de chaves e o trust file só muda após
+validação completa e gravação atômica.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

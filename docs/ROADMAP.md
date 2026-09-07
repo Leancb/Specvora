@@ -205,7 +205,17 @@
 - [x] Map only active local identities and locally assigned roles.
 - [x] Return generic callback failures without provider details or tokens.
 - [x] Keep the post-login destination fixed and fail closed on incomplete configuration.
-- [ ] Add provider discovery/key rotation under a pinned issuer policy.
+- [x] Add provider discovery/key rotation under a pinned issuer policy.
+
+## Module 40 checkpoint
+
+- [x] Require discovery metadata to match the pinned issuer exactly.
+- [x] Constrain every provider endpoint to HTTPS and explicit host allowlists.
+- [x] Validate Authorization Code, RS256 and PKCE S256 capabilities.
+- [x] Require trusted key overlap for staged rotations.
+- [x] Write canonical validated JWKS atomically inside the workspace.
+- [x] Require explicit operator approval for bootstrap and rotation scripts.
+- [ ] Add independent approval and deployment monitoring for production trust changes.
 
 ## Module 17 checkpoint
 

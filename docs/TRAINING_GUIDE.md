@@ -116,6 +116,9 @@ stored digest and prove that a callback transaction can be claimed only once.
 Module 39: use `docs/training/MODULE_39_LAB.md` to follow federated browser login into a locally
 authorized revocable session while preserving signed approval as a separate authority boundary.
 
+Module 40: use `docs/training/MODULE_40_LAB.md` to bootstrap a pinned JWKS, rehearse an
+overlapping rotation and demonstrate preservation of the previous trust file after rejection.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

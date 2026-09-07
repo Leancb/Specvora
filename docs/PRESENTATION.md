@@ -111,6 +111,10 @@ Module 39 demo: start at the portal login link, trace the fixed authorization an
 then show the resulting local session and roles. Finish by sending a provider error and showing
 the same generic failure without remote details.
 
+Module 40 demo: bootstrap key A, rotate to A+B, then attempt A→B directly. Show that the rejected
+rotation preserves the existing bytes and explain why discovery informs configuration but never
+overrides the pinned issuer or human-controlled trust lifecycle.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,
