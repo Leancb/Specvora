@@ -147,6 +147,9 @@ O módulo 38 adiciona Authorization Code + PKCE `S256`, `state` persistido somen
 troca de código confinada a endpoint HTTPS em allowlist. A identidade federada continua sem
 autoridade para aprovar execução ou release.
 
+O módulo 39 conecta esse fluxo às rotas do portal e à sessão local revogável. O provedor confirma
+a identidade, mas usuários ativos, papéis e capacidades continuam definidos pelo Specvora.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

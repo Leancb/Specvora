@@ -123,3 +123,8 @@ audience, nonce and time claims. Remote roles are ignored.
 Module 38 implements that transaction as a five-minute, one-use server record. Raw state is not
 persisted; nonce and PKCE verifier stay server-side. Token exchange rejects redirects, ambient
 proxies and non-allowlisted hosts, and a claimed transaction is not restored after failure.
+
+Module 39 exposes fixed start and callback routes. The callback never accepts a return target,
+never reflects provider errors and issues only the existing revocable local session. External
+claims cannot create users or grant roles. Provider onboarding and key rotation remain explicit
+deployment responsibilities.

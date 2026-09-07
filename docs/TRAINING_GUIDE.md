@@ -113,6 +113,9 @@ then prove that provider-supplied roles cannot elevate local authorization.
 Module 38: use `docs/training/MODULE_38_LAB.md` to inspect PKCE, compare browser state with its
 stored digest and prove that a callback transaction can be claimed only once.
 
+Module 39: use `docs/training/MODULE_39_LAB.md` to follow federated browser login into a locally
+authorized revocable session while preserving signed approval as a separate authority boundary.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

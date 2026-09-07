@@ -107,6 +107,10 @@ Module 38 demo: compare browser `state` with its stored SHA-256 digest, inspect 
 show one successful callback claim and one rejected replay. Federation authenticates identity;
 policy and signed human approval still authorize actions.
 
+Module 39 demo: start at the portal login link, trace the fixed authorization and callback routes,
+then show the resulting local session and roles. Finish by sending a provider error and showing
+the same generic failure without remote details.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

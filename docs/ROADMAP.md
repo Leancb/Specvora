@@ -195,7 +195,17 @@
 - [x] Exchange the code only with an exact allowlisted HTTPS token endpoint.
 - [x] Disable redirects and ambient proxies and keep provider details out of failures.
 - [x] Bind the ID token to the consumed nonce through Module 37 validation.
-- [ ] Wire provider-specific browser routes and production storage/credentials in deployment.
+- [x] Wire provider-neutral browser routes to the local revocable session model.
+- [ ] Provision provider registration and production storage/credentials in deployment.
+
+## Module 39 checkpoint
+
+- [x] Redirect login through the configured OIDC authorization endpoint.
+- [x] Complete the one-use callback and issue the existing signed portal session.
+- [x] Map only active local identities and locally assigned roles.
+- [x] Return generic callback failures without provider details or tokens.
+- [x] Keep the post-login destination fixed and fail closed on incomplete configuration.
+- [ ] Add provider discovery/key rotation under a pinned issuer policy.
 
 ## Module 17 checkpoint
 
