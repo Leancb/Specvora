@@ -118,6 +118,9 @@ overrides the pinned issuer or human-controlled trust lifecycle.
 Module 41 demo: display the proposal hash, offline reviewer signature and different applying
 operator. Apply once, reject replay, then alter the audit line to demonstrate tamper detection.
 
+Module 42 demo: show `HEALTHY` for A, `REVIEW_REQUIRED` for A+B and `BLOCKED` for B-only. Compare
+files before/after and emphasize that detection proposes attention but never changes trust.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

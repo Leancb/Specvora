@@ -216,7 +216,8 @@
 - [x] Write canonical validated JWKS atomically inside the workspace.
 - [x] Require explicit operator approval for bootstrap and rotation scripts.
 - [x] Add independent approval and a tamper-evident audit trail for trust changes.
-- [ ] Add deployment monitoring for production trust changes.
+- [x] Add read-only deterministic monitoring for trust changes and integrity failures.
+- [ ] Deliver alerts through an authenticated production receiver with owned SLOs.
 
 ## Module 41 checkpoint
 
@@ -227,6 +228,16 @@
 - [x] Append old/new hashes and accountable identities to a verified hash chain.
 - [x] Keep private keys, client secrets and tokens outside proposal and audit artifacts.
 - [ ] Move the multi-file transaction into an operated production change service.
+
+## Module 42 checkpoint
+
+- [x] Verify current JWKS structure and its binding to the last audit record.
+- [x] Compare canonical current/discovered key sets without writing local state.
+- [x] Distinguish unchanged, overlapping change and complete trust discontinuity.
+- [x] Detect malformed, missing or tampered audit state and out-of-band JWKS changes.
+- [x] Emit bounded reports with enumerated findings and no remote response details.
+- [x] Preserve human-governed rotation; monitoring has no update authority.
+- [ ] Add authenticated alert delivery, scheduling and operational ownership.
 
 ## Module 17 checkpoint
 

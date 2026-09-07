@@ -122,6 +122,9 @@ overlapping rotation and demonstrate preservation of the previous trust file aft
 Module 41: use `docs/training/MODULE_41_LAB.md` to separate discovery, offline approval and
 application, then verify one-use consumption and the trust-change audit chain.
 
+Module 42: use `docs/training/MODULE_42_LAB.md` to classify provider drift, trust discontinuity
+and local tampering while proving that the monitor never rotates keys.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

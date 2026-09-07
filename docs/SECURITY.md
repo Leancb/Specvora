@@ -136,3 +136,7 @@ operator intent and atomic replacement. Discovery cannot silently redefine ident
 Module 41 binds each trust proposal to exact bytes and requires a short-lived, one-use Ed25519
 approval from someone other than the applying operator. Old/new hashes and accountable identities
 form a verified chain. Private signing keys never enter discovery or application processes.
+
+Module 42 verifies that current canonical JWKS bytes match the last governed audit change and
+compares them with pinned discovery. It reports drift or discontinuity using fixed findings and
+cannot write trust state. Alerts never become approval to rotate keys.
