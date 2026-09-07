@@ -107,3 +107,7 @@ identity, revocation telemetry or proof of which workload used a bearer.
 Portal login throttling atomically limits attempts by a normalized username hash and retains the
 generic credential error. Production additionally requires edge limits by source, abuse
 telemetry, alerting and a distributed state backend resilient to deliberate load.
+MFA recovery codes are high entropy, stored only as domain-separated digests and consumed under
+the same transactional state contract. Plaintext recovery output is operator-confined and must
+be removed after offline transfer; production recovery belongs to the identity provider and an
+audited operational process.

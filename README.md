@@ -128,6 +128,10 @@ O módulo 33 adiciona limite transacional de tentativas de login por hash normal
 compartilhado entre SQLite e serviço central. Mensagens continuam genéricas e o sucesso completo
 limpa a janela; controles de borda e telemetria de abuso continuam necessários em produção.
 
+O módulo 34 adiciona códigos de recuperação MFA de uso único, gerados explicitamente pelo
+operador e persistidos somente como digests. O consumo e a rotação usam estado transacional e
+revogam sessões anteriores, sem ampliar a autoridade para execução ou release.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

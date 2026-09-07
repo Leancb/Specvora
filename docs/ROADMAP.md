@@ -103,7 +103,8 @@
 - [x] Keep the enrollment secret out of console output and version control.
 - [x] Add portal UI, operator workflow and deterministic RFC-vector tests.
 - [x] Add transactional login rate limiting through the selected state backend.
-- [ ] Add recovery, external federation and transactional multi-node replay state.
+- [x] Add hashed, one-use recovery codes through transactional state.
+- [ ] Add external federation and transactional multi-node replay state.
 
 ## Module 28 checkpoint
 
@@ -153,6 +154,14 @@
 - [x] Share the contract across SQLite, HTTPS adapter and central state service.
 - [x] Clear the window only after complete successful authentication.
 - [ ] Add edge/source controls, abuse telemetry and distributed production storage.
+
+## Module 34 checkpoint
+
+- [x] Generate high-entropy recovery codes only through an explicit operator workflow.
+- [x] Persist only domain-separated digests in the transactional state backend.
+- [x] Consume each recovery code exactly once and rotate the complete set.
+- [x] Revoke earlier sessions after recovery while preserving generic login failures.
+- [ ] Delegate production recovery to a federated identity lifecycle with audit alerts.
 
 ## Module 17 checkpoint
 

@@ -107,6 +107,9 @@ replay rejection and the boundary between transactional local state and distribu
 Module 27: use `docs/training/MODULE_27_LAB.md` to enroll TOTP, reject password-only and replayed
 logins, revoke old sessions and identify why local seed storage is not production federation.
 
+Module 34: use `docs/training/MODULE_34_LAB.md` to generate, consume and rotate offline MFA
+recovery codes while confirming that plaintext never enters durable application state.
+
 Module 33: use `docs/training/MODULE_33_LAB.md` to exhaust and reset the transactional login
 budget while confirming that raw usernames and credentials never enter throttle state.
 

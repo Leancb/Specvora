@@ -87,6 +87,10 @@ Module 33 demo: exhaust five failed login attempts, show the same generic reject
 password inside the window, then advance the laboratory clock and authenticate. Inspect the
 state to show only the normalized subject hash and distinguish application throttling from WAF.
 
+Module 34 demo: generate recovery codes through the operator CLI, inspect the database for only
+digests, use one code successfully and reject its replay. Rotate the set, demonstrate invalidation
+of older codes and explain why recovery never grants execution or release authority.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,
