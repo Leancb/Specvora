@@ -33,6 +33,7 @@ dev = [
 specvora = "specvora.cli:main"
 specvora-governance = "specvora.governance_cli:main"
 specvora-oidc-trust = "specvora.oidc_trust_cli:main"
+specvora-oidc-governance = "specvora.oidc_trust_approval_cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/specvora"]

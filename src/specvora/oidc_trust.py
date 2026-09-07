@@ -46,6 +46,44 @@ def refresh_oidc_trust(
         action = "requires an absent file" if bootstrap else "requires an existing file"
         raise ValueError(f"OIDC trust operation {action}")
 
+    _metadata, new_set = discover_oidc_trust(
+        discovery_endpoint, expected_issuer, normalized_hosts, transport=transport
+    )
+    new_kids = {key["kid"] for key in new_set.keys}
+    if not bootstrap:
+        current = validate_jwk_set(target.read_bytes())
+        current_kids = {key["kid"] for key in current.keys}
+        if not current_kids & new_kids:
+            raise ValueError("OIDC JWKS rotation has no trusted overlap")
+    canonical = json.dumps(
+        new_set.model_dump(), sort_keys=True, separators=(",", ":")
+    ).encode() + b"\n"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_name(f".{target.name}.{secrets.token_hex(8)}.tmp")
+    try:
+        with temporary.open("xb") as stream:
+            stream.write(canonical)
+        temporary.replace(target)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return {
+        "status": "BOOTSTRAPPED" if bootstrap else "ROTATED",
+        "issuer": issuer.geturl(), "key_ids": sorted(new_kids), "output": str(target),
+    }
+
+
+def discover_oidc_trust(
+    discovery_endpoint: str,
+    expected_issuer: str,
+    allowed_hosts: set[str],
+    *,
+    transport=None,
+):
+    normalized_hosts = {host.casefold().rstrip(".") for host in allowed_hosts}
+    discovery = _allowed_endpoint(discovery_endpoint, normalized_hosts)
+    if not discovery.path.endswith("/.well-known/openid-configuration"):
+        raise ValueError("OIDC discovery endpoint is invalid")
+    _allowed_endpoint(expected_issuer, normalized_hosts)
     try:
         with httpx.Client(
             timeout=5, follow_redirects=False, trust_env=False, transport=transport,
@@ -69,29 +107,7 @@ def refresh_oidc_trust(
             raw_jwks = _response_bytes(client.get(metadata.jwks_uri), "JWKS")
     except httpx.HTTPError as exc:
         raise ValueError("OIDC trust endpoint is unavailable") from exc
-
-    new_set = validate_jwk_set(raw_jwks)
-    new_kids = {key["kid"] for key in new_set.keys}
-    if not bootstrap:
-        current = validate_jwk_set(target.read_bytes())
-        current_kids = {key["kid"] for key in current.keys}
-        if not current_kids & new_kids:
-            raise ValueError("OIDC JWKS rotation has no trusted overlap")
-    canonical = json.dumps(
-        new_set.model_dump(), sort_keys=True, separators=(",", ":")
-    ).encode() + b"\n"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    temporary = target.with_name(f".{target.name}.{secrets.token_hex(8)}.tmp")
-    try:
-        with temporary.open("xb") as stream:
-            stream.write(canonical)
-        temporary.replace(target)
-    finally:
-        temporary.unlink(missing_ok=True)
-    return {
-        "status": "BOOTSTRAPPED" if bootstrap else "ROTATED",
-        "issuer": issuer.geturl(), "key_ids": sorted(new_kids), "output": str(target),
-    }
+    return metadata, validate_jwk_set(raw_jwks)
 
 
 def _allowed_endpoint(value: str, allowed_hosts: set[str]):
