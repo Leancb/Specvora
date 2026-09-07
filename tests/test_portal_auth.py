@@ -11,6 +11,7 @@ from specvora.portal_auth import (
     add_portal_user,
     authenticate,
     enable_portal_mfa,
+    generate_portal_recovery_codes,
     hash_password,
     issue_session,
     require_capability,
@@ -211,3 +212,31 @@ def test_enable_mfa_rotates_sessions_and_returns_enrollment(configured_auth):
     assert user.totp_secret in uri
     with pytest.raises(ValueError, match="already enabled"):
         enable_portal_mfa(configured_auth, "reviewer.one")
+
+
+def test_recovery_codes_are_hashed_rotated_and_consumed_once(
+    configured_auth, tmp_path, monkeypatch
+):
+    enable_portal_mfa(configured_auth, "reviewer.one")
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_BACKEND", "sqlite")
+    monkeypatch.setenv("SPECVORA_PORTAL_STATE_DB", str(tmp_path / "recovery.db"))
+    user, codes = generate_portal_recovery_codes(configured_auth, "reviewer.one")
+    assert len(codes) == 8
+    assert len(set(codes)) == 8
+    assert all(len(code) == 23 for code in codes)
+    persisted = configured_auth.read_text(encoding="utf-8")
+    assert all(code not in persisted for code in codes)
+    assert user.session_version == 3
+    recovered = authenticate(
+        "reviewer.one", "correct horse battery staple", recovery_code=codes[0]
+    )
+    assert recovered.username == "reviewer.one"
+    assert recovered.session_version == 4
+    with pytest.raises(ValueError, match="Invalid portal credentials"):
+        authenticate("reviewer.one", "correct horse battery staple", recovery_code=codes[0])
+    _user, replacements = generate_portal_recovery_codes(configured_auth, "reviewer.one")
+    with pytest.raises(ValueError, match="Invalid portal credentials"):
+        authenticate("reviewer.one", "correct horse battery staple", recovery_code=codes[1])
+    assert authenticate(
+        "reviewer.one", "correct horse battery staple", recovery_code=replacements[0]
+    ).username == "reviewer.one"

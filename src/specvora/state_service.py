@@ -38,6 +38,15 @@ class LoginAttempt(BaseModel):
     window_seconds: int = Field(ge=60, le=3600)
 
 
+class RecoveryCodeSet(BaseModel):
+    digests: list[str] = Field(min_length=1, max_length=12)
+
+
+class RecoveryCodeClaim(BaseModel):
+    username: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    code_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
 class ServiceTokenDigest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     token_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -136,6 +145,31 @@ def clear_login_attempts(subject: str, _authorized: Authorized) -> Response:
         raise HTTPException(status_code=422, detail="Login subject is invalid")
     _store().clear_login_attempts(subject)
     return Response(status_code=204)
+
+
+@app.put("/v1/recovery-codes/{username}", status_code=204)
+def replace_recovery_codes(
+    username: str, recovery: RecoveryCodeSet, _authorized: Authorized
+) -> Response:
+    if (
+        len(username) < 3
+        or len(username) > 64
+        or username[0] not in "abcdefghijklmnopqrstuvwxyz0123456789"
+        or any(character not in "abcdefghijklmnopqrstuvwxyz0123456789._-" for character in username)
+        or any(len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest)
+               for digest in recovery.digests)
+        or len(set(recovery.digests)) != len(recovery.digests)
+    ):
+        raise HTTPException(status_code=422, detail="Recovery-code set is invalid")
+    _store().replace_recovery_codes(username, recovery.digests)
+    return Response(status_code=204)
+
+
+@app.post("/v1/recovery-code-claims", status_code=201)
+def claim_recovery_code(claim: RecoveryCodeClaim, _authorized: Authorized) -> Response:
+    if not _store().claim_recovery_code(claim.username, claim.code_digest):
+        raise HTTPException(status_code=409, detail="Recovery code is unavailable")
+    return Response(status_code=201)
 
 
 @app.post("/v1/sessions", status_code=201)

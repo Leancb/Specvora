@@ -37,6 +37,18 @@ def test_login_attempt_window_is_bounded_and_resettable(tmp_path):
     assert store.claim_login_attempt("b" * 64, now + timedelta(seconds=300), 1, 300)
 
 
+def test_recovery_code_is_claimed_once_and_rotation_replaces_set(tmp_path):
+    store = PortalSessionStore(tmp_path / "state.db")
+    store.replace_recovery_codes("user", ["a" * 64, "b" * 64])
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        claims = list(pool.map(lambda _: store.claim_recovery_code("user", "a" * 64), range(4)))
+    assert claims.count(True) == 1
+    assert claims.count(False) == 3
+    store.replace_recovery_codes("user", ["c" * 64])
+    assert not store.claim_recovery_code("user", "b" * 64)
+    assert store.claim_recovery_code("user", "c" * 64)
+
+
 def test_backend_selection_fails_closed(tmp_path, monkeypatch):
     from specvora.portal_auth import _state_store
 

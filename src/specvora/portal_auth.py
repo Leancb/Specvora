@@ -92,6 +92,7 @@ def authenticate(
     username: str,
     password: str,
     totp_code: str | None = None,
+    recovery_code: str | None = None,
     *,
     now: datetime | None = None,
 ) -> PortalUser:
@@ -106,19 +107,29 @@ def authenticate(
     user = next((item for item in users.users if item.username == username), None)
     if user is None or not user.active or not verify_password(password, user.password_hash):
         raise ValueError("Invalid portal credentials")
+    used_recovery = False
     if user.totp_secret:
         counter = verify_totp(user.totp_secret, totp_code or "", now=instant)
-        if counter is None:
-            raise ValueError("Invalid portal credentials")
-        store = _state_store()
-        if store:
-            if not store.claim_mfa_counter(user.username, counter):
-                raise ValueError("Invalid portal credentials")
+        if counter is not None:
+            if state:
+                if not state.claim_mfa_counter(user.username, counter):
+                    raise ValueError("Invalid portal credentials")
+            else:
+                if user.last_totp_counter is not None and counter <= user.last_totp_counter:
+                    raise ValueError("Invalid portal credentials")
+                user.last_totp_counter = counter
+                _write_users(_users_path(), users)
         else:
-            if user.last_totp_counter is not None and counter <= user.last_totp_counter:
+            used_recovery = bool(
+                recovery_code
+                and state
+                and state.claim_recovery_code(user.username, recovery_code_digest(recovery_code))
+            )
+            if not used_recovery:
                 raise ValueError("Invalid portal credentials")
-            user.last_totp_counter = counter
-            _write_users(_users_path(), users)
+    if used_recovery:
+        user.session_version += 1
+        _write_users(_users_path(), users)
     if state:
         state.clear_login_attempts(login_subject)
     return user
@@ -126,6 +137,40 @@ def authenticate(
 
 def generate_totp_secret() -> str:
     return base64.b32encode(secrets.token_bytes(20)).decode("ascii").rstrip("=")
+
+
+def recovery_code_digest(code: str) -> str:
+    normalized = code.replace("-", "").upper()
+    valid = len(normalized) == 20 and all(
+        character in "23456789ABCDEFGHJKLMNPQRSTUVWXYZ" for character in normalized
+    )
+    material = normalized if valid else f"invalid:{normalized[:128]}"
+    return hashlib.sha256(f"specvora-recovery-v1:{material}".encode()).hexdigest()
+
+
+def generate_portal_recovery_codes(
+    users_file: Path, username: str, *, count: int = 8
+) -> tuple[PortalUser, list[str]]:
+    if not 6 <= count <= 12:
+        raise ValueError("Recovery-code count must be between 6 and 12")
+    users = PortalUsers.model_validate_json(users_file.read_bytes())
+    user = next((item for item in users.users if item.username == username), None)
+    if user is None or not user.totp_secret:
+        raise ValueError("Portal user with MFA does not exist")
+    state = _state_store()
+    if state is None:
+        raise ValueError("Recovery codes require a transactional portal state backend")
+    alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+    codes = []
+    while len(codes) < count:
+        raw = "".join(secrets.choice(alphabet) for _ in range(20))
+        code = "-".join(raw[index:index + 5] for index in range(0, 20, 5))
+        if code not in codes:
+            codes.append(code)
+    state.replace_recovery_codes(username, [recovery_code_digest(code) for code in codes])
+    user.session_version += 1
+    _write_users(users_file, users)
+    return user, codes
 
 
 def totp_code(secret: str, *, now: datetime | None = None, digits: int = 6) -> str:

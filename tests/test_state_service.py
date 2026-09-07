@@ -72,6 +72,20 @@ def test_service_enforces_and_clears_login_attempt_limit(tmp_path, monkeypatch):
     assert client.post("/v1/login-attempts", headers=headers, json=payload).status_code == 201
 
 
+def test_service_rotates_and_claims_recovery_codes_once(tmp_path, monkeypatch):
+    client, headers = configured_client(tmp_path, monkeypatch)
+    username = "user.one"
+    assert client.put(f"/v1/recovery-codes/{username}", headers=headers,
+                      json={"digests": ["a" * 64, "b" * 64]}).status_code == 204
+    claim = {"username": username, "code_digest": "a" * 64}
+    assert client.post("/v1/recovery-code-claims", headers=headers, json=claim).status_code == 201
+    assert client.post("/v1/recovery-code-claims", headers=headers, json=claim).status_code == 409
+    assert client.put(f"/v1/recovery-codes/{username}", headers=headers,
+                      json={"digests": ["c" * 64]}).status_code == 204
+    claim["code_digest"] = "b" * 64
+    assert client.post("/v1/recovery-code-claims", headers=headers, json=claim).status_code == 409
+
+
 def test_service_accepts_only_active_hashed_keyring_tokens(tmp_path, monkeypatch):
     client, _headers = configured_client(tmp_path, monkeypatch)
     now = datetime.now(UTC)

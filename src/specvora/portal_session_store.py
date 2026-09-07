@@ -17,6 +17,8 @@ class PortalSessionState(Protocol):
         self, subject: str, now: datetime, limit: int, window_seconds: int
     ) -> bool: ...
     def clear_login_attempts(self, subject: str) -> None: ...
+    def replace_recovery_codes(self, username: str, digests: list[str]) -> None: ...
+    def claim_recovery_code(self, username: str, digest: str) -> bool: ...
     def register_session(self, session_id: str, username: str, expires_at: datetime) -> None: ...
     def session_is_active(self, session_id: str, now: datetime) -> bool: ...
     def revoke_session(self, session_id: str) -> None: ...
@@ -43,6 +45,11 @@ class PortalSessionStore:
                     subject TEXT PRIMARY KEY,
                     window_started TEXT NOT NULL,
                     attempts INTEGER NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS recovery_codes (
+                    username TEXT NOT NULL,
+                    code_digest TEXT NOT NULL,
+                    PRIMARY KEY(username, code_digest)
                 );
                 """
             )
@@ -92,6 +99,26 @@ class PortalSessionStore:
     def clear_login_attempts(self, subject: str) -> None:
         with self._connect() as connection:
             connection.execute("DELETE FROM login_attempts WHERE subject=?", (subject,))
+
+    def replace_recovery_codes(self, username: str, digests: list[str]) -> None:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute("DELETE FROM recovery_codes WHERE username=?", (username,))
+            connection.executemany(
+                "INSERT INTO recovery_codes(username, code_digest) VALUES (?, ?)",
+                [(username, digest) for digest in digests],
+            )
+            connection.commit()
+
+    def claim_recovery_code(self, username: str, digest: str) -> bool:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            result = connection.execute(
+                "DELETE FROM recovery_codes WHERE username=? AND code_digest=?",
+                (username, digest),
+            )
+            connection.commit()
+            return result.rowcount == 1
 
     def register_session(
         self, session_id: str, username: str, expires_at: datetime
@@ -166,6 +193,22 @@ class HttpPortalSessionStore:
         )
         if response.status_code != 204:
             raise RuntimeError("Central portal state service rejected login reset")
+
+    def replace_recovery_codes(self, username: str, digests: list[str]) -> None:
+        response = self._request("PUT", f"/v1/recovery-codes/{quote(username, safe='')}",
+                                 json={"digests": digests})
+        if response.status_code != 204:
+            raise RuntimeError("Central portal state service rejected recovery-code rotation")
+
+    def claim_recovery_code(self, username: str, digest: str) -> bool:
+        response = self._request("POST", "/v1/recovery-code-claims", json={
+            "username": username, "code_digest": digest,
+        })
+        if response.status_code == 201:
+            return True
+        if response.status_code == 409:
+            return False
+        raise RuntimeError("Central portal state service rejected recovery-code claim")
 
     def register_session(self, session_id: str, username: str, expires_at: datetime) -> None:
         response = self._request("POST", "/v1/sessions", json={"session_id": session_id,

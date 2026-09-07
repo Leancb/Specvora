@@ -56,6 +56,7 @@ class PortalLoginRequest(BaseModel):
     username: str
     password: str
     totp_code: str | None = None
+    recovery_code: str | None = None
 
 
 SESSION_COOKIE = "specvora_session"
@@ -132,7 +133,9 @@ def login_portal(request: PortalLoginRequest, response: Response) -> dict:
         raise HTTPException(status_code=400, detail="Portal authentication is not enabled")
     try:
         token, identity = issue_session(
-            authenticate(request.username, request.password, request.totp_code)
+            authenticate(
+                request.username, request.password, request.totp_code, request.recovery_code
+            )
         )
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=401, detail="Invalid portal credentials") from exc

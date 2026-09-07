@@ -11,7 +11,11 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from specvora.authorization import execution_action
 from specvora.combined_release import CombinedReleaseRequest, assess_combined
 from specvora.playwright_runner import PlaywrightRunnerRequest
-from specvora.portal_auth import add_portal_user, enable_portal_mfa
+from specvora.portal_auth import (
+    add_portal_user,
+    enable_portal_mfa,
+    generate_portal_recovery_codes,
+)
 from specvora.runner import RunnerRequest
 from specvora.signed_approval import (
     ApprovalClaims,
@@ -44,6 +48,10 @@ def main() -> None:
     portal_mfa.add_argument("--users-file", type=Path, required=True)
     portal_mfa.add_argument("--username", required=True)
     portal_mfa.add_argument("--enrollment-out", type=Path, required=True)
+    portal_recovery = commands.add_parser("generate-portal-recovery")
+    portal_recovery.add_argument("--users-file", type=Path, required=True)
+    portal_recovery.add_argument("--username", required=True)
+    portal_recovery.add_argument("--output", type=Path, required=True)
     prepare = commands.add_parser("prepare-execution")
     prepare.add_argument("input", type=Path, help="Runner request JSON")
     prepare.add_argument("--kind", choices=["api", "browser"], required=True)
@@ -89,6 +97,18 @@ def main() -> None:
             stream.write(json.dumps({"username": user.username, "otpauth_uri": uri}, indent=2))
             stream.write("\n")
         print(json.dumps({"username": user.username, "enrollment": str(target)}))
+        return
+    if args.command == "generate-portal-recovery":
+        users_file = confined(args.users_file, args.workspace_root)
+        target = confined(args.output, args.workspace_root)
+        if target.exists():
+            raise ValueError("Recovery-code output already exists")
+        user, codes = generate_portal_recovery_codes(users_file, args.username)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("x", encoding="utf-8", newline="\n") as stream:
+            stream.write(json.dumps({"username": user.username, "recovery_codes": codes}, indent=2))
+            stream.write("\n")
+        print(json.dumps({"username": user.username, "recovery_codes": str(target)}))
         return
     raw = confined(args.input, args.workspace_root).read_bytes()
     if args.command == "prepare-execution":

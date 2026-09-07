@@ -232,7 +232,8 @@ input{display:block;margin:8px 0;padding:8px;min-width:280px}</style></head><bod
 <section id="login" hidden><h2>Sign in</h2><input id="username" autocomplete="username"
  placeholder="Username"><input id="password" type="password" autocomplete="current-password"
  placeholder="Password"><input id="totp" inputmode="numeric" autocomplete="one-time-code"
- placeholder="MFA code (if enabled)"><button onclick="loginPortal()">Sign in</button></section>
+ placeholder="TOTP code"><input id="recovery" autocomplete="one-time-code"
+ placeholder="Recovery code (optional)"><button onclick="loginPortal()">Sign in</button></section>
 <div id="portal-content" hidden><p id="identity"></p>
 <button onclick="logoutPortal()">Sign out</button>
 <h2>Projects</h2><table id="projects"><tbody></tbody></table>
@@ -270,7 +271,8 @@ async function loginPortal(){
   headers:{'Content-Type':'application/json'},
   body:JSON.stringify({username:document.getElementById('username').value,
    password:document.getElementById('password').value,
-   totp_code:document.getElementById('totp').value||null})});
+   totp_code:document.getElementById('totp').value||null,
+   recovery_code:document.getElementById('recovery').value||null})});
  if(!response.ok)return alert((await response.json()).detail);location.reload();
 }
 async function logoutPortal(){

@@ -24,6 +24,8 @@ def test_http_state_contract_and_secret_transport():
     assert store.claim_mfa_counter("user", 4)
     assert store.claim_login_attempt("a" * 64, now, 5, 300)
     store.clear_login_attempts("a" * 64)
+    store.replace_recovery_codes("user", ["b" * 64])
+    assert store.claim_recovery_code("user", "b" * 64)
     store.register_session("id", "user", now + timedelta(minutes=5))
     assert store.session_is_active("id", now)
     store.revoke_session("id")
