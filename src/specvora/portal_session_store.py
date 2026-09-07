@@ -12,6 +12,12 @@ import httpx
 
 
 class PortalSessionState(Protocol):
+    def register_oidc_transaction(
+        self, state_digest: str, nonce: str, code_verifier: str, expires_at: datetime
+    ) -> None: ...
+    def claim_oidc_transaction(
+        self, state_digest: str, now: datetime
+    ) -> tuple[str, str] | None: ...
     def claim_mfa_counter(self, username: str, counter: int) -> bool: ...
     def claim_login_attempt(
         self, subject: str, now: datetime, limit: int, window_seconds: int
@@ -60,6 +66,12 @@ class PortalSessionStore:
                     subject TEXT NOT NULL,
                     occurred_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS oidc_transactions (
+                    state_digest TEXT PRIMARY KEY,
+                    nonce TEXT NOT NULL,
+                    code_verifier TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                );
                 """
             )
 
@@ -104,6 +116,32 @@ class PortalSessionStore:
             )
             connection.commit()
             return True
+
+    def register_oidc_transaction(
+        self, state_digest: str, nonce: str, code_verifier: str, expires_at: datetime
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO oidc_transactions VALUES (?, ?, ?, ?)",
+                (state_digest, nonce, code_verifier, expires_at.isoformat()),
+            )
+
+    def claim_oidc_transaction(
+        self, state_digest: str, now: datetime
+    ) -> tuple[str, str] | None:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT nonce, code_verifier, expires_at FROM oidc_transactions "
+                "WHERE state_digest=?", (state_digest,),
+            ).fetchone()
+            connection.execute(
+                "DELETE FROM oidc_transactions WHERE state_digest=?", (state_digest,)
+            )
+            connection.commit()
+        if not row or now >= datetime.fromisoformat(row[2]):
+            return None
+        return row[0], row[1]
 
     def clear_login_attempts(self, subject: str) -> None:
         with self._connect() as connection:
@@ -191,6 +229,34 @@ class HttpPortalSessionStore:
         if response.status_code == 409:
             return False
         raise RuntimeError("Central portal state service rejected MFA claim")
+
+    def register_oidc_transaction(
+        self, state_digest: str, nonce: str, code_verifier: str, expires_at: datetime
+    ) -> None:
+        response = self._request("POST", "/v1/oidc-transactions", json={
+            "state_digest": state_digest, "nonce": nonce,
+            "code_verifier": code_verifier, "expires_at": expires_at.isoformat(),
+        })
+        if response.status_code != 201:
+            raise RuntimeError("Central portal state service rejected OIDC transaction")
+
+    def claim_oidc_transaction(
+        self, state_digest: str, now: datetime
+    ) -> tuple[str, str] | None:
+        response = self._request("POST", "/v1/oidc-transaction-claims", json={
+            "state_digest": state_digest, "observed_at": now.isoformat(),
+        })
+        if response.status_code == 409:
+            return None
+        if response.status_code != 200:
+            raise RuntimeError("Central portal state service rejected OIDC claim")
+        payload = response.json()
+        if (
+            set(payload) != {"nonce", "code_verifier"}
+            or not all(isinstance(payload[key], str) for key in payload)
+        ):
+            raise RuntimeError("Central portal state service returned an invalid response")
+        return payload["nonce"], payload["code_verifier"]
 
     def claim_login_attempt(
         self, subject: str, now: datetime, limit: int, window_seconds: int

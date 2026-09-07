@@ -48,6 +48,23 @@ def test_service_mfa_claim_is_atomic_under_concurrency(tmp_path, monkeypatch):
     assert statuses.count(409) == 3
 
 
+def test_service_oidc_transaction_is_one_use(tmp_path, monkeypatch):
+    client, headers = configured_client(tmp_path, monkeypatch)
+    now = datetime.now(UTC)
+    transaction = {
+        "state_digest": "e" * 64, "nonce": "n" * 32,
+        "code_verifier": "v" * 43,
+        "expires_at": (now + timedelta(minutes=5)).isoformat(),
+    }
+    assert client.post("/v1/oidc-transactions", headers=headers,
+                       json=transaction).status_code == 201
+    claim = {"state_digest": "e" * 64, "observed_at": now.isoformat()}
+    response = client.post("/v1/oidc-transaction-claims", headers=headers, json=claim)
+    assert response.json() == {"nonce": "n" * 32, "code_verifier": "v" * 43}
+    assert client.post("/v1/oidc-transaction-claims", headers=headers,
+                       json=claim).status_code == 409
+
+
 def test_service_fails_closed_without_storage(tmp_path, monkeypatch):
     client, headers = configured_client(tmp_path, monkeypatch)
     monkeypatch.delenv("SPECVORA_STATE_SERVICE_DB")

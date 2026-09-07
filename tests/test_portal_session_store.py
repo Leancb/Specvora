@@ -17,6 +17,18 @@ def test_mfa_counter_is_claimed_atomically_once(tmp_path):
     assert store.claim_mfa_counter("user", 43) is True
 
 
+def test_oidc_transaction_is_claimed_atomically_once(tmp_path):
+    store = PortalSessionStore(tmp_path / "state.db")
+    now = datetime(2026, 9, 7, tzinfo=UTC)
+    store.register_oidc_transaction("a" * 64, "nonce", "verifier", now + timedelta(minutes=5))
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        claims = list(pool.map(lambda _: store.claim_oidc_transaction("a" * 64, now), range(4)))
+    assert claims.count(("nonce", "verifier")) == 1
+    assert claims.count(None) == 3
+    store.register_oidc_transaction("b" * 64, "nonce", "verifier", now)
+    assert store.claim_oidc_transaction("b" * 64, now) is None
+
+
 def test_session_registration_expiry_and_revocation(tmp_path):
     store = PortalSessionStore(tmp_path / "state.db")
     now = datetime(2026, 9, 6, tzinfo=UTC)

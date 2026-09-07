@@ -25,6 +25,20 @@ class MfaClaim(BaseModel):
     counter: int = Field(ge=0)
 
 
+class OidcTransaction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    state_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    nonce: str = Field(pattern=r"^[A-Za-z0-9_-]{32,256}$")
+    code_verifier: str = Field(pattern=r"^[A-Za-z0-9._~-]{43,128}$")
+    expires_at: datetime
+
+
+class OidcTransactionClaim(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    state_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    observed_at: datetime
+
+
 class SessionRegistration(BaseModel):
     session_id: str = Field(min_length=16, max_length=200)
     username: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
@@ -135,6 +149,32 @@ def claim_mfa(claim: MfaClaim, _authorized: Authorized) -> Response:
     if not _store().claim_mfa_counter(claim.username, claim.counter):
         raise HTTPException(status_code=409, detail="MFA counter was already claimed")
     return Response(status_code=201)
+
+
+@app.post("/v1/oidc-transactions", status_code=201)
+def register_oidc_transaction(transaction: OidcTransaction, _authorized: Authorized) -> Response:
+    if transaction.expires_at.tzinfo is None:
+        raise HTTPException(status_code=422, detail="Timezone-aware timestamp is required")
+    try:
+        _store().register_oidc_transaction(
+            transaction.state_digest, transaction.nonce,
+            transaction.code_verifier, transaction.expires_at,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=409, detail="OIDC transaction is unavailable") from exc
+    return Response(status_code=201)
+
+
+@app.post("/v1/oidc-transaction-claims")
+def claim_oidc_transaction(
+    claim: OidcTransactionClaim, _authorized: Authorized
+) -> dict[str, str]:
+    if claim.observed_at.tzinfo is None:
+        raise HTTPException(status_code=422, detail="Timezone-aware timestamp is required")
+    transaction = _store().claim_oidc_transaction(claim.state_digest, claim.observed_at)
+    if transaction is None:
+        raise HTTPException(status_code=409, detail="OIDC transaction is unavailable")
+    return {"nonce": transaction[0], "code_verifier": transaction[1]}
 
 
 @app.post("/v1/login-attempts", status_code=201)
