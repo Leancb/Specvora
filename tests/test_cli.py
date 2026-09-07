@@ -35,3 +35,27 @@ def test_cli_reports_generated_artifacts(tmp_path: Path, monkeypatch, capsys) ->
     assert any(path.endswith("request-cases.json") for path in payload["artifacts"])
     assert any(path.endswith("validation-report.json") for path in payload["artifacts"])
     assert any(path.endswith("quality-gate.json") for path in payload["artifacts"])
+
+
+def test_cli_confines_security_export_and_reads_runtime_token(tmp_path, monkeypatch, capsys):
+    state = tmp_path / "state.db"
+    state.touch()
+    checkpoint = tmp_path / "checkpoint.json"
+    captured = {}
+
+    def export(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return {"status": "EXPORTED", "exported": 1, "last_event_id": 1}
+
+    monkeypatch.setattr("specvora.cli.export_security_events", export)
+    monkeypatch.setenv("SPECVORA_SIEM_TOKEN", "runtime-secret-" + "x" * 32)
+    monkeypatch.setattr(sys, "argv", [
+        "specvora", "export-security", "--workspace-root", str(tmp_path),
+        "--state-db", str(state), "--checkpoint", str(checkpoint),
+        "--endpoint", "https://siem.example/events", "--allowed-host", "siem.example",
+    ])
+    main()
+    assert json.loads(capsys.readouterr().out)["exported"] == 1
+    assert captured["args"][4].startswith("runtime-secret-")
+    assert not checkpoint.exists()

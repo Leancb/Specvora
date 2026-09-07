@@ -19,6 +19,7 @@ from specvora.promoted_generation import generate_promoted
 from specvora.proposal_review import review_and_promote
 from specvora.pytest_ingest import PytestIngestRequest, ingest_pytest_report, write_evidence
 from specvora.runner import RunnerRequest, run_generated_tests
+from specvora.security_export import export_security_events
 from specvora.signed_approval import SignedApproval
 
 
@@ -125,8 +126,31 @@ def main() -> None:
     for argument in ("proposal", "decision", "review", "catalog", "bindings", "output-dir",
                      "workspace-root"):
         promoted_parser.add_argument("--" + argument, type=Path, required=True)
+    security_export_parser = commands.add_parser(
+        "export-security", help="Export structured portal events to an allowed HTTPS collector"
+    )
+    security_export_parser.add_argument("--state-db", type=Path, required=True)
+    security_export_parser.add_argument("--checkpoint", type=Path, required=True)
+    security_export_parser.add_argument("--workspace-root", type=Path, required=True)
+    security_export_parser.add_argument("--endpoint", required=True)
+    security_export_parser.add_argument("--allowed-host", action="append", required=True)
+    security_export_parser.add_argument("--batch-size", type=int, default=100)
     args = parser.parse_args()
-    if args.command == "generate-promoted":
+    if args.command == "export-security":
+        root = args.workspace_root.resolve()
+        state_db = args.state_db.resolve()
+        checkpoint = args.checkpoint.resolve()
+        if not state_db.is_relative_to(root) or not checkpoint.is_relative_to(root):
+            raise ValueError("Security export files escape the workspace")
+        output = export_security_events(
+            state_db,
+            checkpoint,
+            args.endpoint,
+            args.allowed_host,
+            os.getenv("SPECVORA_SIEM_TOKEN", ""),
+            batch_size=args.batch_size,
+        )
+    elif args.command == "generate-promoted":
         output = generate_promoted(
             args.project_file, args.proposal, args.decision, args.review,
             args.catalog, args.bindings, args.output_dir, args.workspace_root,
