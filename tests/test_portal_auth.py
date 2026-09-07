@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -240,3 +241,10 @@ def test_recovery_codes_are_hashed_rotated_and_consumed_once(
     assert authenticate(
         "reviewer.one", "correct horse battery staple", recovery_code=replacements[0]
     ).username == "reviewer.one"
+    with sqlite3.connect(tmp_path / "recovery.db") as connection:
+        events = connection.execute(
+            "SELECT event_type, subject FROM security_events ORDER BY event_id"
+        ).fetchall()
+    assert "recovery_used" in [event[0] for event in events]
+    assert "recovery_rotated" in [event[0] for event in events]
+    assert all(event[1] != "reviewer.one" for event in events)

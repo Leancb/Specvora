@@ -47,6 +47,15 @@ class RecoveryCodeClaim(BaseModel):
     code_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
+class SecurityEvent(BaseModel):
+    event_type: Literal[
+        "login_failed", "login_throttled", "login_succeeded",
+        "recovery_used", "recovery_rotated",
+    ]
+    subject: str = Field(pattern=r"^[0-9a-f]{64}$")
+    occurred_at: datetime
+
+
 class ServiceTokenDigest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     token_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -169,6 +178,14 @@ def replace_recovery_codes(
 def claim_recovery_code(claim: RecoveryCodeClaim, _authorized: Authorized) -> Response:
     if not _store().claim_recovery_code(claim.username, claim.code_digest):
         raise HTTPException(status_code=409, detail="Recovery code is unavailable")
+    return Response(status_code=201)
+
+
+@app.post("/v1/security-events", status_code=201)
+def record_security_event(event: SecurityEvent, _authorized: Authorized) -> Response:
+    if event.occurred_at.tzinfo is None:
+        raise HTTPException(status_code=422, detail="Timezone-aware timestamp is required")
+    _store().record_security_event(event.event_type, event.subject, event.occurred_at)
     return Response(status_code=201)
 
 

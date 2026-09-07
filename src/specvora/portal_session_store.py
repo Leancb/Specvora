@@ -19,6 +19,9 @@ class PortalSessionState(Protocol):
     def clear_login_attempts(self, subject: str) -> None: ...
     def replace_recovery_codes(self, username: str, digests: list[str]) -> None: ...
     def claim_recovery_code(self, username: str, digest: str) -> bool: ...
+    def record_security_event(
+        self, event_type: str, subject: str, occurred_at: datetime
+    ) -> None: ...
     def register_session(self, session_id: str, username: str, expires_at: datetime) -> None: ...
     def session_is_active(self, session_id: str, now: datetime) -> bool: ...
     def revoke_session(self, session_id: str) -> None: ...
@@ -50,6 +53,12 @@ class PortalSessionStore:
                     username TEXT NOT NULL,
                     code_digest TEXT NOT NULL,
                     PRIMARY KEY(username, code_digest)
+                );
+                CREATE TABLE IF NOT EXISTS security_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_type TEXT NOT NULL,
+                    subject TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL
                 );
                 """
             )
@@ -119,6 +128,15 @@ class PortalSessionStore:
             )
             connection.commit()
             return result.rowcount == 1
+
+    def record_security_event(
+        self, event_type: str, subject: str, occurred_at: datetime
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO security_events(event_type, subject, occurred_at) VALUES (?, ?, ?)",
+                (event_type, subject, occurred_at.isoformat()),
+            )
 
     def register_session(
         self, session_id: str, username: str, expires_at: datetime
@@ -209,6 +227,16 @@ class HttpPortalSessionStore:
         if response.status_code == 409:
             return False
         raise RuntimeError("Central portal state service rejected recovery-code claim")
+
+    def record_security_event(
+        self, event_type: str, subject: str, occurred_at: datetime
+    ) -> None:
+        response = self._request("POST", "/v1/security-events", json={
+            "event_type": event_type, "subject": subject,
+            "occurred_at": occurred_at.isoformat(),
+        })
+        if response.status_code != 201:
+            raise RuntimeError("Central portal state service rejected security event")
 
     def register_session(self, session_id: str, username: str, expires_at: datetime) -> None:
         response = self._request("POST", "/v1/sessions", json={"session_id": session_id,

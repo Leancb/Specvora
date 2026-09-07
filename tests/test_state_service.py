@@ -86,6 +86,18 @@ def test_service_rotates_and_claims_recovery_codes_once(tmp_path, monkeypatch):
     assert client.post("/v1/recovery-code-claims", headers=headers, json=claim).status_code == 409
 
 
+def test_service_accepts_only_structured_security_events(tmp_path, monkeypatch):
+    client, headers = configured_client(tmp_path, monkeypatch)
+    payload = {
+        "event_type": "login_failed",
+        "subject": "d" * 64,
+        "occurred_at": datetime.now(UTC).isoformat(),
+    }
+    assert client.post("/v1/security-events", headers=headers, json=payload).status_code == 201
+    payload["event_type"] = "password=secret"
+    assert client.post("/v1/security-events", headers=headers, json=payload).status_code == 422
+
+
 def test_service_accepts_only_active_hashed_keyring_tokens(tmp_path, monkeypatch):
     client, _headers = configured_client(tmp_path, monkeypatch)
     now = datetime.now(UTC)

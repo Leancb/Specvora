@@ -98,14 +98,17 @@ def authenticate(
 ) -> PortalUser:
     instant = now or datetime.now(UTC)
     state = _state_store()
-    login_subject = hashlib.sha256(username.casefold().encode("utf-8")).hexdigest()
+    login_subject = _security_subject(username)
     if state and not state.claim_login_attempt(
         login_subject, instant, LOGIN_ATTEMPT_LIMIT, LOGIN_ATTEMPT_WINDOW_SECONDS
     ):
+        state.record_security_event("login_throttled", login_subject, instant)
         raise ValueError("Invalid portal credentials")
     users = _load_users()
     user = next((item for item in users.users if item.username == username), None)
     if user is None or not user.active or not verify_password(password, user.password_hash):
+        if state:
+            state.record_security_event("login_failed", login_subject, instant)
         raise ValueError("Invalid portal credentials")
     used_recovery = False
     if user.totp_secret:
@@ -126,12 +129,17 @@ def authenticate(
                 and state.claim_recovery_code(user.username, recovery_code_digest(recovery_code))
             )
             if not used_recovery:
+                if state:
+                    state.record_security_event("login_failed", login_subject, instant)
                 raise ValueError("Invalid portal credentials")
     if used_recovery:
         user.session_version += 1
         _write_users(_users_path(), users)
     if state:
         state.clear_login_attempts(login_subject)
+        state.record_security_event(
+            "recovery_used" if used_recovery else "login_succeeded", login_subject, instant
+        )
     return user
 
 
@@ -170,7 +178,12 @@ def generate_portal_recovery_codes(
     state.replace_recovery_codes(username, [recovery_code_digest(code) for code in codes])
     user.session_version += 1
     _write_users(users_file, users)
+    state.record_security_event("recovery_rotated", _security_subject(username), datetime.now(UTC))
     return user, codes
+
+
+def _security_subject(username: str) -> str:
+    return hashlib.sha256(username.casefold().encode("utf-8")).hexdigest()
 
 
 def totp_code(secret: str, *, now: datetime | None = None, digits: int = 6) -> str:

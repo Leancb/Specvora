@@ -1,3 +1,4 @@
+import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 
@@ -47,6 +48,18 @@ def test_recovery_code_is_claimed_once_and_rotation_replaces_set(tmp_path):
     store.replace_recovery_codes("user", ["c" * 64])
     assert not store.claim_recovery_code("user", "b" * 64)
     assert store.claim_recovery_code("user", "c" * 64)
+
+
+def test_security_event_contains_only_enumerated_metadata(tmp_path):
+    path = tmp_path / "state.db"
+    store = PortalSessionStore(path)
+    now = datetime(2026, 9, 7, tzinfo=UTC)
+    store.record_security_event("login_failed", "a" * 64, now)
+    with sqlite3.connect(path) as connection:
+        row = connection.execute(
+            "SELECT event_type, subject, occurred_at FROM security_events"
+        ).fetchone()
+    assert row == ("login_failed", "a" * 64, now.isoformat())
 
 
 def test_backend_selection_fails_closed(tmp_path, monkeypatch):
