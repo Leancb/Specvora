@@ -91,6 +91,10 @@ Module 34 demo: generate recovery codes through the operator CLI, inspect the da
 digests, use one code successfully and reject its replay. Rotate the set, demonstrate invalidation
 of older codes and explain why recovery never grants execution or release authority.
 
+Module 35 demo: perform failed, throttled, successful and recovery logins, then inspect the
+ordered security-event table. Show that identities are hashed and no secret-bearing free-form
+field exists; distinguish this trail from the release-evidence audit chain and a production SIEM.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

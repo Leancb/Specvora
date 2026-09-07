@@ -163,6 +163,14 @@
 - [x] Revoke earlier sessions after recovery while preserving generic login failures.
 - [ ] Delegate production recovery to a federated identity lifecycle with audit alerts.
 
+## Module 35 checkpoint
+
+- [x] Record enumerated login, throttling and recovery events in transactional state.
+- [x] Persist only event type, normalized subject hash and timezone-aware timestamp.
+- [x] Share the event contract across SQLite, HTTPS adapter and central service.
+- [x] Reject arbitrary metadata that could capture authentication secrets.
+- [ ] Export events to a protected SIEM with retention, alerting and workload identity.
+
 ## Module 17 checkpoint
 
 - [x] Operator-only Ed25519 signatures, context/expiry validation and one-time consumption ledger.

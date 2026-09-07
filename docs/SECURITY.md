@@ -111,3 +111,6 @@ MFA recovery codes are high entropy, stored only as domain-separated digests and
 the same transactional state contract. Plaintext recovery output is operator-confined and must
 be removed after offline transfer; production recovery belongs to the identity provider and an
 audited operational process.
+Portal security events accept only enumerated types, a normalized subject hash and timestamp.
+They intentionally exclude free-form context to prevent credential capture. Production requires
+protected export, retention controls, SIEM correlation and alert ownership.

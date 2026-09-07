@@ -132,6 +132,10 @@ O módulo 34 adiciona códigos de recuperação MFA de uso único, gerados expli
 operador e persistidos somente como digests. O consumo e a rotação usam estado transacional e
 revogam sessões anteriores, sem ampliar a autoridade para execução ou release.
 
+O módulo 35 registra eventos estruturados de login, bloqueio e recuperação no backend
+transacional. A trilha contém somente tipos enumerados, hash do sujeito e horário; exportação para
+SIEM, retenção e alertas permanecem controles de produção.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
