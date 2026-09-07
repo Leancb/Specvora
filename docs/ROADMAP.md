@@ -25,7 +25,7 @@
 
 ## Next modules
 
-1. Add external identity federation and phishing-resistant MFA.
+1. Complete OIDC Authorization Code + PKCE and add phishing-resistant MFA.
 2. Move the centralized portal state service to an operated datastore and workload identity.
 3. Replace rotating bearer trust with workload identity and auditable short-lived leases.
 
@@ -179,6 +179,14 @@
 - [x] Advance an atomic confined checkpoint only after collector acceptance.
 - [x] Bound retries and reject redirects, ambient proxies and unsafe destinations.
 - [ ] Replace runtime bearer authentication with managed workload identity.
+
+## Module 37 checkpoint
+
+- [x] Validate `RS256` ID tokens against an explicitly provisioned JWKS.
+- [x] Bind exact issuer, audience, nonce and temporal claims.
+- [x] Map external usernames only to active local identities and roles.
+- [x] Ignore remote role/group claims and emit generic validation failures.
+- [ ] Add Authorization Code + PKCE with one-use server-side state and nonce.
 
 ## Module 17 checkpoint
 

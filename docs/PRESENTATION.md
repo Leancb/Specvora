@@ -99,6 +99,10 @@ Module 36 demo: export two pseudonymized events to an allowlisted HTTPS fixture,
 idempotency key and checkpoint, then force a permanent failure and show no checkpoint movement.
 Explain that receiver idempotency and workload identity remain production responsibilities.
 
+Module 37 demo: validate a signed OIDC token, then alter issuer, nonce and signature. Add an
+`operator` role to the external token and show that the mapped local reviewer remains reviewer.
+Explain why Authorization Code + PKCE is still required before exposing federated browser login.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

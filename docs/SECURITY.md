@@ -117,3 +117,6 @@ protected export, retention controls, SIEM correlation and alert ownership.
 SIEM export requires an exact HTTPS host allowlist, runtime-only bearer, fixed schema,
 idempotency key and success-gated checkpoint. Redirects and ambient proxies are disabled. A
 production receiver must enforce idempotency and use workload identity and managed TLS policy.
+OIDC validation accepts only `RS256` from an explicitly provisioned JWKS and binds exact issuer,
+audience, nonce and time claims. Remote roles are ignored. No browser federation endpoint exists
+until Authorization Code + PKCE and one-use server-side state/nonce are implemented.
