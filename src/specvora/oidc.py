@@ -90,12 +90,33 @@ def _public_key(kid: str) -> rsa.RSAPublicKey:
     raw = Path(path).read_bytes()
     if len(raw) > 65_536:
         raise ValueError
-    jwks = JwkSet.model_validate_json(raw)
+    jwks = validate_jwk_set(raw)
     matches = [key for key in jwks.keys if key.get("kid") == kid]
     if len(matches) != 1:
         raise ValueError
-    key = matches[0]
-    if set(key) - {"kty", "kid", "use", "alg", "n", "e"}:
+    return _key_from_jwk(matches[0])
+
+
+def validate_jwk_set(raw: bytes) -> JwkSet:
+    if len(raw) > 65_536:
+        raise ValueError("OIDC JWKS is invalid")
+    jwks = JwkSet.model_validate_json(raw)
+    kids = []
+    for key in jwks.keys:
+        _key_from_jwk(key)
+        kids.append(key.get("kid"))
+    if len(kids) != len(set(kids)):
+        raise ValueError("OIDC JWKS is invalid")
+    return jwks
+
+
+def _key_from_jwk(key: dict) -> rsa.RSAPublicKey:
+    if (
+        set(key) - {"kty", "kid", "use", "alg", "n", "e"}
+        or not {"kty", "kid", "n", "e"} <= set(key)
+        or not isinstance(key["kid"], str)
+        or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", key["kid"])
+    ):
         raise ValueError
     if key.get("kty") != "RSA" or key.get("use") not in {None, "sig"}:
         raise ValueError
