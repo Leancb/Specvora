@@ -119,6 +119,9 @@ authorized revocable session while preserving signed approval as a separate auth
 Module 40: use `docs/training/MODULE_40_LAB.md` to bootstrap a pinned JWKS, rehearse an
 overlapping rotation and demonstrate preservation of the previous trust file after rejection.
 
+Module 41: use `docs/training/MODULE_41_LAB.md` to separate discovery, offline approval and
+application, then verify one-use consumption and the trust-change audit chain.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

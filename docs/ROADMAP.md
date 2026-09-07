@@ -215,7 +215,18 @@
 - [x] Require trusted key overlap for staged rotations.
 - [x] Write canonical validated JWKS atomically inside the workspace.
 - [x] Require explicit operator approval for bootstrap and rotation scripts.
-- [ ] Add independent approval and deployment monitoring for production trust changes.
+- [x] Add independent approval and a tamper-evident audit trail for trust changes.
+- [ ] Add deployment monitoring for production trust changes.
+
+## Module 41 checkpoint
+
+- [x] Bind proposed public keys, issuer, project and target path in an immutable artifact.
+- [x] Require a short-lived Ed25519 approval from a person other than the applying operator.
+- [x] Consume every trust-change approval exactly once.
+- [x] Revalidate current trust and overlap immediately before atomic replacement.
+- [x] Append old/new hashes and accountable identities to a verified hash chain.
+- [x] Keep private keys, client secrets and tokens outside proposal and audit artifacts.
+- [ ] Move the multi-file transaction into an operated production change service.
 
 ## Module 17 checkpoint
 

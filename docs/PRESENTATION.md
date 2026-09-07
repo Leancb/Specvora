@@ -115,6 +115,9 @@ Module 40 demo: bootstrap key A, rotate to A+B, then attempt A→B directly. Sho
 rotation preserves the existing bytes and explain why discovery informs configuration but never
 overrides the pinned issuer or human-controlled trust lifecycle.
 
+Module 41 demo: display the proposal hash, offline reviewer signature and different applying
+operator. Apply once, reject replay, then alter the audit line to demonstrate tamper detection.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

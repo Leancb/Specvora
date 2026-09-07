@@ -132,3 +132,7 @@ deployment responsibilities.
 Module 40 pins discovery to the configured issuer and constrains all metadata endpoints to exact
 HTTPS host allowlists. JWKS changes require valid RSA keys, staged key-ID overlap, explicit
 operator intent and atomic replacement. Discovery cannot silently redefine identity trust.
+
+Module 41 binds each trust proposal to exact bytes and requires a short-lived, one-use Ed25519
+approval from someone other than the applying operator. Old/new hashes and accountable identities
+form a verified chain. Private signing keys never enter discovery or application processes.
