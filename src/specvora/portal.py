@@ -233,7 +233,8 @@ input{display:block;margin:8px 0;padding:8px;min-width:280px}</style></head><bod
  placeholder="Username"><input id="password" type="password" autocomplete="current-password"
  placeholder="Password"><input id="totp" inputmode="numeric" autocomplete="one-time-code"
  placeholder="TOTP code"><input id="recovery" autocomplete="one-time-code"
- placeholder="Recovery code (optional)"><button onclick="loginPortal()">Sign in</button></section>
+ placeholder="Recovery code (optional)"><button onclick="loginPortal()">Sign in</button>
+ <a href="/api/session/oidc/start">Sign in with OIDC</a></section>
 <div id="portal-content" hidden><p id="identity"></p>
 <button onclick="logoutPortal()">Sign out</button>
 <h2>Projects</h2><table id="projects"><tbody></tbody></table>

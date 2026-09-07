@@ -4,7 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from test_portal import workspace
 
+import specvora.main as main_module
 from specvora.main import app
+from specvora.oidc import OidcClaims
 from specvora.portal_auth import hash_password, totp_code
 
 
@@ -83,6 +85,64 @@ def test_login_requires_mfa_and_rejects_reused_code(authenticated_portal):
     payload["totp_code"] = totp_code("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ")
     assert client.post("/api/session", json=payload).status_code == 200
     assert client.post("/api/session", json=payload).status_code == 401
+
+
+def test_oidc_routes_issue_local_revocable_session(authenticated_portal, monkeypatch):
+    client = authenticated_portal
+    monkeypatch.setenv("SPECVORA_OIDC_AUTHORIZATION_ENDPOINT",
+                       "https://identity.example/authorize")
+    monkeypatch.setenv("SPECVORA_OIDC_TOKEN_ENDPOINT", "https://identity.example/token")
+    monkeypatch.setenv("SPECVORA_OIDC_CLIENT_ID", "specvora")
+    monkeypatch.setenv("SPECVORA_OIDC_REDIRECT_URI",
+                       "http://127.0.0.1:8102/api/session/oidc/callback")
+    monkeypatch.setenv("SPECVORA_OIDC_TOKEN_ALLOWED_HOSTS", "identity.example")
+    calls = []
+
+    def begin(store, authorization, client_id, redirect_uri):
+        calls.append((store, authorization, client_id, redirect_uri))
+        return "https://identity.example/authorize?state=browser-state"
+
+    def complete(store, state, code, token_endpoint, client_id, redirect_uri, hosts):
+        calls.append((store, state, code, token_endpoint, client_id, redirect_uri, hosts))
+        return OidcClaims(
+            iss="https://identity.example/tenant", aud="specvora", sub="subject-1",
+            exp=2_000_000_000, iat=1_000_000_000, nonce="nonce-value-long-enough",
+            preferred_username="reviewer.one",
+        )
+
+    monkeypatch.setattr(main_module, "begin_oidc_login", begin)
+    monkeypatch.setattr(main_module, "complete_oidc_login", complete)
+    start = client.get("/api/session/oidc/start", follow_redirects=False)
+    assert start.status_code == 303
+    assert start.headers["location"].startswith("https://identity.example/authorize")
+    callback = client.get(
+        "/api/session/oidc/callback?state=browser-state&code=authorization-code",
+        follow_redirects=False,
+    )
+    assert callback.status_code == 303
+    assert callback.headers["location"] == "/portal"
+    assert client.cookies.get("specvora_session")
+    assert client.get("/api/projects").status_code == 200
+    assert calls[1][1:3] == ("browser-state", "authorization-code")
+    identity = client.get("/api/session").json()
+    assert identity["username"] == "reviewer.one"
+    assert identity["roles"] == ["reviewer"]
+
+
+def test_oidc_callback_failure_is_generic(authenticated_portal):
+    response = authenticated_portal.get(
+        "/api/session/oidc/callback?error=access_denied&error_description=provider-secret",
+        follow_redirects=False,
+    )
+    assert response.status_code == 401
+    assert response.json() == {"detail": "OIDC login failed"}
+    assert "provider-secret" not in response.text
+
+
+def test_oidc_start_fails_closed_when_configuration_is_incomplete(authenticated_portal):
+    response = authenticated_portal.get("/api/session/oidc/start", follow_redirects=False)
+    assert response.status_code == 503
+    assert response.json() == {"detail": "OIDC login is unavailable"}
 
 
 def test_roles_csrf_and_reviewer_identity_are_enforced(

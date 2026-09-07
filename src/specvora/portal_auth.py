@@ -15,7 +15,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from specvora.oidc import verify_oidc_id_token
+from specvora.oidc import OidcClaims, verify_oidc_id_token
 from specvora.portal_session_store import (
     HttpPortalSessionStore,
     PortalSessionState,
@@ -149,6 +149,13 @@ def authenticate_oidc(
 ) -> PortalUser:
     instant = now or datetime.now(UTC)
     claims = verify_oidc_id_token(id_token, expected_nonce, now=instant)
+    return authorize_oidc_identity(claims, now=instant)
+
+
+def authorize_oidc_identity(
+    claims: OidcClaims, *, now: datetime | None = None
+) -> PortalUser:
+    instant = now or datetime.now(UTC)
     users = _load_users()
     user = next(
         (item for item in users.users if item.username == claims.preferred_username), None
@@ -160,6 +167,13 @@ def authenticate_oidc(
         raise ValueError("OIDC authentication requires transactional portal state")
     state.record_security_event("login_succeeded", _security_subject(user.username), instant)
     return user
+
+
+def portal_state_store(*, required: bool = False) -> PortalSessionState | None:
+    state = _state_store()
+    if required and state is None:
+        raise ValueError("Portal authentication requires transactional portal state")
+    return state
 
 
 def generate_totp_secret() -> str:

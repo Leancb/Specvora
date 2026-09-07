@@ -5,11 +5,12 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 from specvora.audit import append_assessment
 from specvora.confidence import ConfidenceAssessment, TestRunResult, assess_release
+from specvora.oidc_flow import begin_oidc_login, complete_oidc_login
 from specvora.pipeline import run_analysis
 from specvora.portal import (
     PortalGenerationRequest,
@@ -30,8 +31,10 @@ from specvora.portal_auth import (
     Capability,
     SessionIdentity,
     authenticate,
+    authorize_oidc_identity,
     issue_session,
     portal_auth_mode,
+    portal_state_store,
     require_capability,
     revoke_portal_session,
     verify_session,
@@ -60,6 +63,28 @@ class PortalLoginRequest(BaseModel):
 
 
 SESSION_COOKIE = "specvora_session"
+
+
+def _oidc_configuration() -> tuple[str, str, str, str, set[str]]:
+    values = tuple(os.getenv(name, "") for name in (
+        "SPECVORA_OIDC_AUTHORIZATION_ENDPOINT", "SPECVORA_OIDC_TOKEN_ENDPOINT",
+        "SPECVORA_OIDC_CLIENT_ID", "SPECVORA_OIDC_REDIRECT_URI",
+    ))
+    hosts = {item.strip().lower() for item in os.getenv(
+        "SPECVORA_OIDC_TOKEN_ALLOWED_HOSTS", ""
+    ).split(",") if item.strip()}
+    if not all(values) or not hosts:
+        raise ValueError("OIDC login is not configured")
+    return values[0], values[1], values[2], values[3], hosts
+
+
+def _set_session_cookie(response: Response, token: str, identity: SessionIdentity) -> None:
+    secure = os.getenv("SPECVORA_PORTAL_COOKIE_SECURE", "true").lower() == "true"
+    max_age = max(0, int((identity.expires_at - datetime.now(UTC)).total_seconds()))
+    response.set_cookie(
+        SESSION_COOKIE, token, max_age=max_age, httponly=True, secure=secure,
+        samesite="strict", path="/",
+    )
 
 
 def _portal_identity(request: Request) -> SessionIdentity:
@@ -139,18 +164,44 @@ def login_portal(request: PortalLoginRequest, response: Response) -> dict:
         )
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=401, detail="Invalid portal credentials") from exc
-    secure = os.getenv("SPECVORA_PORTAL_COOKIE_SECURE", "true").lower() == "true"
-    max_age = max(0, int((identity.expires_at - datetime.now(UTC)).total_seconds()))
-    response.set_cookie(
-        SESSION_COOKIE,
-        token,
-        max_age=max_age,
-        httponly=True,
-        secure=secure,
-        samesite="strict",
-        path="/",
-    )
+    _set_session_cookie(response, token, identity)
     return identity.model_dump(mode="json")
+
+
+@app.get("/api/session/oidc/start")
+def start_oidc_portal_login() -> RedirectResponse:
+    if portal_auth_mode() != "required":
+        raise HTTPException(status_code=400, detail="Portal authentication is not enabled")
+    try:
+        authorization, _token, client_id, redirect_uri, _hosts = _oidc_configuration()
+        location = begin_oidc_login(
+            portal_state_store(required=True), authorization, client_id, redirect_uri
+        )
+        return RedirectResponse(location, status_code=303)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=503, detail="OIDC login is unavailable") from exc
+
+
+@app.get("/api/session/oidc/callback")
+def complete_oidc_portal_login(
+    state: str | None = None, code: str | None = None, error: str | None = None
+) -> RedirectResponse:
+    if portal_auth_mode() != "required":
+        raise HTTPException(status_code=400, detail="Portal authentication is not enabled")
+    try:
+        if error or not state or not code:
+            raise ValueError("OIDC provider rejected login")
+        _authorization, token_endpoint, client_id, redirect_uri, hosts = _oidc_configuration()
+        claims = complete_oidc_login(
+            portal_state_store(required=True), state, code, token_endpoint,
+            client_id, redirect_uri, hosts,
+        )
+        token, identity = issue_session(authorize_oidc_identity(claims))
+        response = RedirectResponse("/portal", status_code=303)
+        _set_session_cookie(response, token, identity)
+        return response
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=401, detail="OIDC login failed") from exc
 
 
 @app.get("/api/session")
