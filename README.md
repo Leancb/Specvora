@@ -136,6 +136,10 @@ O módulo 35 registra eventos estruturados de login, bloqueio e recuperação no
 transacional. A trilha contém somente tipos enumerados, hash do sujeito e horário; exportação para
 SIEM, retenção e alertas permanecem controles de produção.
 
+O módulo 36 exporta esses eventos incrementalmente para um coletor HTTPS autorizado, com lote
+idempotente, retentativas limitadas e checkpoint atualizado somente após confirmação. O bearer
+permanece em runtime; workload identity e operação do receptor continuam pendentes para produção.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

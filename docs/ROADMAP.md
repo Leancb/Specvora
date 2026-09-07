@@ -169,7 +169,16 @@
 - [x] Persist only event type, normalized subject hash and timezone-aware timestamp.
 - [x] Share the event contract across SQLite, HTTPS adapter and central service.
 - [x] Reject arbitrary metadata that could capture authentication secrets.
-- [ ] Export events to a protected SIEM with retention, alerting and workload identity.
+- [x] Export events incrementally to an authenticated, allowlisted HTTPS collector.
+- [ ] Add workload identity, receiver monitoring, retention and alert ownership.
+
+## Module 36 checkpoint
+
+- [x] Export only the fixed pseudonymized event schema from read-only state.
+- [x] Bind each canonical batch to a deterministic idempotency key.
+- [x] Advance an atomic confined checkpoint only after collector acceptance.
+- [x] Bound retries and reject redirects, ambient proxies and unsafe destinations.
+- [ ] Replace runtime bearer authentication with managed workload identity.
 
 ## Module 17 checkpoint
 

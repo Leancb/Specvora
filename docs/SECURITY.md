@@ -114,3 +114,6 @@ audited operational process.
 Portal security events accept only enumerated types, a normalized subject hash and timestamp.
 They intentionally exclude free-form context to prevent credential capture. Production requires
 protected export, retention controls, SIEM correlation and alert ownership.
+SIEM export requires an exact HTTPS host allowlist, runtime-only bearer, fixed schema,
+idempotency key and success-gated checkpoint. Redirects and ambient proxies are disabled. A
+production receiver must enforce idempotency and use workload identity and managed TLS policy.

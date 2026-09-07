@@ -107,6 +107,9 @@ replay rejection and the boundary between transactional local state and distribu
 Module 27: use `docs/training/MODULE_27_LAB.md` to enroll TOTP, reject password-only and replayed
 logins, revoke old sessions and identify why local seed storage is not production federation.
 
+Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
+bounded retries and prove that failed delivery never advances the confined checkpoint.
+
 Module 35: use `docs/training/MODULE_35_LAB.md` to inspect structured authentication events,
 confirm subject pseudonymization and reject secret-bearing arbitrary metadata.
 

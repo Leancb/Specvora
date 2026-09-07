@@ -95,6 +95,10 @@ Module 35 demo: perform failed, throttled, successful and recovery logins, then 
 ordered security-event table. Show that identities are hashed and no secret-bearing free-form
 field exists; distinguish this trail from the release-evidence audit chain and a production SIEM.
 
+Module 36 demo: export two pseudonymized events to an allowlisted HTTPS fixture, inspect the
+idempotency key and checkpoint, then force a permanent failure and show no checkpoint movement.
+Explain that receiver idempotency and workload identity remain production responsibilities.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,
