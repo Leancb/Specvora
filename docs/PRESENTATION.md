@@ -101,7 +101,11 @@ Explain that receiver idempotency and workload identity remain production respon
 
 Module 37 demo: validate a signed OIDC token, then alter issuer, nonce and signature. Add an
 `operator` role to the external token and show that the mapped local reviewer remains reviewer.
-Explain why Authorization Code + PKCE is still required before exposing federated browser login.
+Explain why token validation alone was insufficient before the Module 38 browser-flow boundary.
+
+Module 38 demo: compare browser `state` with its stored SHA-256 digest, inspect PKCE `S256`, then
+show one successful callback claim and one rejected replay. Federation authenticates identity;
+policy and signed human approval still authorize actions.
 
 ## Slide 11 — Roadmap
 

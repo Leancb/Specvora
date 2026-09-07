@@ -141,8 +141,11 @@ idempotente, retentativas limitadas e checkpoint atualizado somente após confir
 permanece em runtime; workload identity e operação do receptor continuam pendentes para produção.
 
 O módulo 37 adiciona validação OIDC estrita de ID tokens `RS256`, vinculando issuer, audience,
-nonce, tempo e JWKS confiável. Identidades externas só recebem papéis locais preexistentes; o
-fluxo browser Authorization Code + PKCE permanece como próximo endurecimento.
+nonce, tempo e JWKS confiável. Identidades externas só recebem papéis locais preexistentes.
+
+O módulo 38 adiciona Authorization Code + PKCE `S256`, `state` persistido somente como digest e
+troca de código confinada a endpoint HTTPS em allowlist. A identidade federada continua sem
+autoridade para aprovar execução ou release.
 
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.

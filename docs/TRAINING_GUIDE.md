@@ -110,6 +110,9 @@ logins, revoke old sessions and identify why local seed storage is not productio
 Module 37: use `docs/training/MODULE_37_LAB.md` to validate OIDC signatures and registered claims,
 then prove that provider-supplied roles cannot elevate local authorization.
 
+Module 38: use `docs/training/MODULE_38_LAB.md` to inspect PKCE, compare browser state with its
+stored digest and prove that a callback transaction can be claimed only once.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

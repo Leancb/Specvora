@@ -118,5 +118,8 @@ SIEM export requires an exact HTTPS host allowlist, runtime-only bearer, fixed s
 idempotency key and success-gated checkpoint. Redirects and ambient proxies are disabled. A
 production receiver must enforce idempotency and use workload identity and managed TLS policy.
 OIDC validation accepts only `RS256` from an explicitly provisioned JWKS and binds exact issuer,
-audience, nonce and time claims. Remote roles are ignored. No browser federation endpoint exists
-until Authorization Code + PKCE and one-use server-side state/nonce are implemented.
+audience, nonce and time claims. Remote roles are ignored.
+
+Module 38 implements that transaction as a five-minute, one-use server record. Raw state is not
+persisted; nonce and PKCE verifier stay server-side. Token exchange rejects redirects, ambient
+proxies and non-allowlisted hosts, and a claimed transaction is not restored after failure.

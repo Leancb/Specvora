@@ -186,7 +186,16 @@
 - [x] Bind exact issuer, audience, nonce and temporal claims.
 - [x] Map external usernames only to active local identities and roles.
 - [x] Ignore remote role/group claims and emit generic validation failures.
-- [ ] Add Authorization Code + PKCE with one-use server-side state and nonce.
+- [x] Add Authorization Code + PKCE with one-use server-side state and nonce.
+
+## Module 38 checkpoint
+
+- [x] Generate unpredictable state, nonce and an RFC 7636 verifier per login attempt.
+- [x] Persist only a state digest and consume the server transaction atomically.
+- [x] Exchange the code only with an exact allowlisted HTTPS token endpoint.
+- [x] Disable redirects and ambient proxies and keep provider details out of failures.
+- [x] Bind the ID token to the consumed nonce through Module 37 validation.
+- [ ] Wire provider-specific browser routes and production storage/credentials in deployment.
 
 ## Module 17 checkpoint
 
