@@ -188,7 +188,7 @@ def _record_hash(previous: str, payload: dict) -> str:
 
 
 def _confined(path: Path, root: Path, suffix: str) -> Path:
-    resolved = path.resolve()
+    resolved = (path if path.is_absolute() else root / path).resolve()
     if resolved.suffix.lower() != suffix or not resolved.is_relative_to(root.resolve()):
         raise ValueError("OIDC trust artifact escapes the workspace")
     return resolved

@@ -39,7 +39,7 @@ def refresh_oidc_trust(
     if not discovery.path.endswith("/.well-known/openid-configuration"):
         raise ValueError("OIDC discovery endpoint is invalid")
     issuer = _allowed_endpoint(expected_issuer, normalized_hosts)
-    target = output_file.resolve()
+    target = (output_file if output_file.is_absolute() else workspace_root / output_file).resolve()
     if target.suffix.lower() != ".json" or not target.is_relative_to(workspace_root.resolve()):
         raise ValueError("OIDC trust file escapes the workspace")
     if target.exists() == bootstrap:
