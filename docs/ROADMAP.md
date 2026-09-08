@@ -23,11 +23,15 @@
 - [x] Add approved, immutable default-deny policies for container/OS network egress.
 - [x] Add SQLite multi-project persistence and a local human review portal.
 
-## Next modules
+## Post-MVP production roadmap
 
-1. Complete OIDC Authorization Code + PKCE and add phishing-resistant MFA.
-2. Move the centralized portal state service to an operated datastore and workload identity.
-3. Replace rotating bearer trust with workload identity and auditable short-lived leases.
+The numbered training modules are complete through Module 44. Remaining work is deployment and
+service operation rather than another local training module:
+
+1. Move portal and coordination state to an operated distributed datastore.
+2. Replace runtime bearer distribution with workload identity and short-lived credentials.
+3. Establish TLS/key lifecycle, backup/recovery, retention, paging ownership and measurable SLOs.
+4. Add phishing-resistant user MFA and production identity-provider lifecycle operations.
 
 ## Module 19 checkpoint
 

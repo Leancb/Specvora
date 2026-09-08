@@ -19,6 +19,10 @@ de entrega. A IA propõe; políticas determinísticas validam; pessoas mantêm a
 
 ## MVP 0.1
 
+Status: feature-complete training MVP. See `CHANGELOG.md` and
+`docs/RELEASE_CHECKLIST.md` before creating tag `v0.1.0`. This status does not declare the local
+state, runtime bearer or training portal suitable for production network exposure.
+
 Módulo 18: decisões no portal e execuções controladas exigem assinatura por padrão.
 Antes de atualizar seu servidor, consulte `docs/training/MODULE_18_LAB.md` para configurar
 chave pública/identidade/ledger ou selecionar explicitamente o modo de laboratório local.
