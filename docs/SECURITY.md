@@ -140,3 +140,7 @@ form a verified chain. Private signing keys never enter discovery or application
 Module 42 verifies that current canonical JWKS bytes match the last governed audit change and
 compares them with pinned discovery. It reports drift or discontinuity using fixed findings and
 cannot write trust state. Alerts never become approval to rotate keys.
+
+Module 43 sends only non-healthy reports to an authenticated, allowlisted HTTPS receiver. Alert
+IDs are stable across repeated observations, retries are bounded, and remote bodies are ignored.
+The delivery path has no import or command capable of proposing or applying JWKS changes.

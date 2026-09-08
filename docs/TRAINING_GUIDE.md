@@ -125,6 +125,9 @@ application, then verify one-use consumption and the trust-change audit chain.
 Module 42: use `docs/training/MODULE_42_LAB.md` to classify provider drift, trust discontinuity
 and local tampering while proving that the monitor never rotates keys.
 
+Module 43: use `docs/training/MODULE_43_LAB.md` to deliver warnings and critical alerts with
+stable idempotency keys while proving that the notification path cannot alter trust.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

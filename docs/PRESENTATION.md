@@ -121,6 +121,10 @@ operator. Apply once, reject replay, then alter the audit line to demonstrate ta
 Module 42 demo: show `HEALTHY` for A, `REVIEW_REQUIRED` for A+B and `BLOCKED` for B-only. Compare
 files before/after and emphasize that detection proposes attention but never changes trust.
 
+Module 43 demo: deliver the same warning at two observation times and compare identical
+idempotency keys. Simulate 503→202, then show that a healthy report sends nothing and notification
+code contains no trust mutation path.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,

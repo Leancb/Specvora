@@ -217,7 +217,8 @@
 - [x] Require explicit operator approval for bootstrap and rotation scripts.
 - [x] Add independent approval and a tamper-evident audit trail for trust changes.
 - [x] Add read-only deterministic monitoring for trust changes and integrity failures.
-- [ ] Deliver alerts through an authenticated production receiver with owned SLOs.
+- [x] Deliver bounded alerts through an authenticated, allowlisted HTTPS receiver.
+- [ ] Replace runtime bearer delivery with workload identity and owned production SLOs.
 
 ## Module 41 checkpoint
 
@@ -237,7 +238,18 @@
 - [x] Detect malformed, missing or tampered audit state and out-of-band JWKS changes.
 - [x] Emit bounded reports with enumerated findings and no remote response details.
 - [x] Preserve human-governed rotation; monitoring has no update authority.
-- [ ] Add authenticated alert delivery, scheduling and operational ownership.
+- [x] Add authenticated, idempotent alert delivery without trust-update authority.
+- [ ] Add production scheduling, workload identity and operational ownership.
+
+## Module 43 checkpoint
+
+- [x] Suppress network delivery for healthy observations.
+- [x] Map review and blocking states to fixed warning/critical severities.
+- [x] Derive stable idempotency keys from the condition rather than observation time.
+- [x] Require runtime authentication and an exact HTTPS destination allowlist.
+- [x] Bound retries and exclude receiver bodies and secrets from failures.
+- [x] Keep monitoring and notification code independent from trust mutation.
+- [ ] Enforce idempotency, retention, paging ownership and SLOs at the operated receiver.
 
 ## Module 17 checkpoint
 
