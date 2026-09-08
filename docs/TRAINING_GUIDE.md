@@ -128,6 +128,9 @@ and local tampering while proving that the monitor never rotates keys.
 Module 43: use `docs/training/MODULE_43_LAB.md` to deliver warnings and critical alerts with
 stable idempotency keys while proving that the notification path cannot alter trust.
 
+Module 44: use `docs/training/MODULE_44_LAB.md` to contend for a transactional monitor lease,
+inspect secret-free cycle history and separate local scheduling from trust-change authority.
+
 Module 36: use `docs/training/MODULE_36_LAB.md` to export a canonical event batch, exercise
 bounded retries and prove that failed delivery never advances the confined checkpoint.
 

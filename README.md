@@ -163,6 +163,9 @@ descontinuidade, adulteração local ou auditoria inválida bloqueiam, sem rota�
 O módulo 43 entrega esses alertas a um receptor HTTPS autenticado e permitido, com payload fixo,
 idempotência estável e retentativas limitadas. A notificação não recebe autoridade sobre o JWKS.
 
+O módulo 44 executa monitoramento e entrega em um ciclo único com lease transacional e histórico
+SQLite sem segredos. O agendamento local exige autorização explícita e nunca roda rotação de trust.
+
 O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
 de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
 Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.

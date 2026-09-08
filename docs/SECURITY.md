@@ -144,3 +144,8 @@ cannot write trust state. Alerts never become approval to rotate keys.
 Module 43 sends only non-healthy reports to an authenticated, allowlisted HTTPS receiver. Alert
 IDs are stable across repeated observations, retries are bounded, and remote bodies are ignored.
 The delivery path has no import or command capable of proposing or applying JWKS changes.
+
+Module 44 admits one named monitor-cycle owner through a bounded transactional lease. Durable
+history has a fixed, secret-free schema and delivery failure always releases ownership. Local task
+registration requires explicit operator intent and cannot invoke OIDC trust mutation. SQLite lease
+scope is one host and is not a production distributed-coordination guarantee.

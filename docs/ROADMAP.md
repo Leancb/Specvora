@@ -251,6 +251,16 @@
 - [x] Keep monitoring and notification code independent from trust mutation.
 - [ ] Enforce idempotency, retention, paging ownership and SLOs at the operated receiver.
 
+## Module 44 checkpoint
+
+- [x] Serialize named monitor cycles with an atomic, expiring SQLite lease.
+- [x] Recover ownership after bounded expiry and release it on every completed failure path.
+- [x] Record a fixed secret-free history with canonical report digests.
+- [x] Combine read-only observation and authenticated delivery in one scheduler-safe CLI.
+- [x] Require explicit intent to register a bounded, non-overlapping local scheduled task.
+- [x] Keep every scheduling path independent from trust proposal, approval and application.
+- [ ] Replace local leases and runtime bearers with operated distributed coordination and identity.
+
 ## Module 17 checkpoint
 
 - [x] Operator-only Ed25519 signatures, context/expiry validation and one-time consumption ledger.

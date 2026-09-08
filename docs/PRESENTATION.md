@@ -125,6 +125,10 @@ Module 43 demo: deliver the same warning at two observation times and compare id
 idempotency keys. Simulate 503→202, then show that a healthy report sends nothing and notification
 code contains no trust mutation path.
 
+Module 44 demo: race eight cycle owners and show that one lease wins. Interrupt a cycle, advance
+past expiry and reclaim it, then inspect the fixed history row. Register the bounded local task
+only with explicit approval and show that neither script contains a trust-change command.
+
 ## Slide 11 — Roadmap
 
 Demonstrate the optional AI proposal envelope: typed output, model/prompt provenance,
