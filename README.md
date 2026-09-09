@@ -60,6 +60,9 @@ para a API técnica.
 
 ## Demonstração por linha de comando
 
+Para um alvo externo, consulte a [demonstração com JSONPlaceholder](docs/PUBLIC_API_DEMO.md).
+Ela inclui um contrato de leitura, geração de três testes e um diagnóstico das respostas reais.
+
 ```powershell
 specvora analyze examples\petstore_project.json
 ```

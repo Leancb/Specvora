@@ -1,0 +1,46 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Specvora JSONPlaceholder read-only subset",
+    "version": "1.0.0",
+    "description": "Contract authored by Specvora from https://jsonplaceholder.typicode.com/guide/. Not an official provider OpenAPI. Concrete example paths intentionally avoid unsupported generated path substitution."
+  },
+  "servers": [
+    {
+      "url": "https://jsonplaceholder.typicode.com"
+    }
+  ],
+  "paths": {
+    "/posts": {
+      "get": {
+        "operationId": "listPosts",
+        "responses": {
+          "200": {
+            "description": "Documented example successful response"
+          }
+        }
+      }
+    },
+    "/posts/1": {
+      "get": {
+        "operationId": "getExamplePost",
+        "responses": {
+          "200": {
+            "description": "Documented example successful response"
+          }
+        }
+      }
+    },
+    "/posts/1/comments": {
+      "get": {
+        "operationId": "listExamplePostComments",
+        "responses": {
+          "200": {
+            "description": "Documented example successful response"
+          }
+        }
+      }
+    }
+  }
+}
+

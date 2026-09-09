@@ -1,0 +1,14 @@
+{
+  "project_id": "jsonplaceholder-demo",
+  "requirements": [
+    "Listar posts da API publica",
+    "Consultar o post de identificador 1",
+    "Consultar comentarios vinculados ao post 1"
+  ],
+  "openapi_path": "jsonplaceholder/openapi.json",
+  "base_url": "https://jsonplaceholder.typicode.com",
+  "allowed_hosts": [
+    "jsonplaceholder.typicode.com"
+  ]
+}
+
