@@ -76,6 +76,73 @@ descrito em `docs/modules/15_NETWORK_EGRESS_ISOLATION.md`. Consulte `docs/SECURI
 
 ## Documentação
 
+### Índice completo dos 44 módulos
+
+#### Fundamentos determinísticos — módulos 01–09
+
+1. [Análise determinística de OpenAPI](docs/modules/01_DETERMINISTIC_OPENAPI_ANALYSIS.md)
+2. [Resultados, auditoria e confiança de release](docs/modules/02_RELEASE_CONFIDENCE.md)
+3. [Geração determinística de dados de schema](docs/modules/03_SCHEMA_DATA_GENERATION.md)
+4. [Referências e composição segura de schemas](docs/modules/04_SAFE_SCHEMA_REFERENCES.md)
+5. [Ingestão controlada de evidências Pytest](docs/modules/05_PYTEST_EVIDENCE_INGESTION.md)
+6. [Executor Pytest local controlado](docs/modules/06_CONTROLLED_LOCAL_RUNNER.md)
+7. [Casos completos para variantes de união](docs/modules/07_SCHEMA_UNION_VARIANTS.md)
+8. [Validação de casos e diagnóstico de uniões](docs/modules/08_SCHEMA_CASE_VALIDATION.md)
+9. [Gate determinístico da geração](docs/modules/09_GENERATION_QUALITY_GATE.md)
+
+#### Web, IA e revisão humana — módulos 10–18
+
+10. [Geração determinística de jornadas Playwright](docs/modules/10_PLAYWRIGHT_JOURNEY_GENERATION.md)
+11. [Execução Playwright controlada](docs/modules/11_CONTROLLED_PLAYWRIGHT_EXECUTION.md)
+12. [Evidências Playwright e confiança de release](docs/modules/12_PLAYWRIGHT_EVIDENCE.md)
+13. [Propostas de cenários por IA governada](docs/modules/13_GOVERNED_AI_PROPOSALS.md)
+14. [Revisão humana e promoção de propostas](docs/modules/14_HUMAN_PROPOSAL_PROMOTION.md)
+15. [Isolamento de saída de rede](docs/modules/15_NETWORK_EGRESS_ISOLATION.md)
+16. [Portal multiprojeto de revisão humana](docs/modules/16_MULTIPROJECT_REVIEW_PORTAL.md)
+17. [Aprovações assinadas e decisão combinada](docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md)
+18. [Autorização assinada no portal e executores](docs/modules/18_SIGNED_AUTHORIZATION_INTEGRATION.md)
+
+#### Testes promovidos e CI governada — módulos 19–26
+
+19. [Geração de testes a partir de cenários promovidos](docs/modules/19_PROMOTED_TEST_GENERATION.md)
+20. [Fixtures controladas de resiliência](docs/modules/20_CONTROLLED_RESILIENCE_FIXTURES.md)
+21. [Geração promovida pelo portal](docs/modules/21_PORTAL_PROMOTED_GENERATION.md)
+22. [Execução governada de fixtures no CI](docs/modules/22_GOVERNED_CI_FIXTURES.md)
+23. [Ledger durável e atômico de aprovações](docs/modules/23_DURABLE_APPROVAL_LEDGER.md)
+24. [Sessões autenticadas e papéis do portal](docs/modules/24_AUTHENTICATED_PORTAL_ROLES.md)
+25. [Adaptadores controlados de autenticação e dependência](docs/modules/25_CONTROLLED_AUTH_DEPENDENCY_ADAPTERS.md)
+26. [Broker de credenciais em runtime](docs/modules/26_RUNTIME_CREDENTIAL_BROKER.md)
+
+#### Identidade e estado transacional — módulos 27–36
+
+27. [Autenticação multifator TOTP](docs/modules/27_PORTAL_TOTP_MFA.md)
+28. [Estado transacional das sessões](docs/modules/28_TRANSACTIONAL_PORTAL_SESSION_STATE.md)
+29. [Contrato do backend de estado](docs/modules/29_PORTAL_STATE_BACKEND_CONTRACT.md)
+30. [Adaptador HTTP centralizado de estado](docs/modules/30_CENTRALIZED_HTTP_STATE_ADAPTER.md)
+31. [Serviço central de estado do portal](docs/modules/31_CENTRAL_PORTAL_STATE_SERVICE.md)
+32. [Rotação da confiança do serviço de estado](docs/modules/32_ROTATING_STATE_SERVICE_TRUST.md)
+33. [Limitação transacional de tentativas de login](docs/modules/33_TRANSACTIONAL_LOGIN_THROTTLING.md)
+34. [Recuperação MFA de uso único](docs/modules/34_ONE_USE_MFA_RECOVERY.md)
+35. [Eventos estruturados de segurança](docs/modules/35_PORTAL_SECURITY_EVENTS.md)
+36. [Exportação segura de eventos para SIEM](docs/modules/36_SAFE_SIEM_EXPORT.md)
+
+#### Federação OIDC e operação monitorada — módulos 37–44
+
+37. [Validação estrita de identidade OIDC](docs/modules/37_STRICT_OIDC_IDENTITY_VALIDATION.md)
+38. [Authorization Code + PKCE de uso único](docs/modules/38_ONE_USE_OIDC_PKCE_FLOW.md)
+39. [Login federado no portal](docs/modules/39_FEDERATED_PORTAL_LOGIN.md)
+40. [Descoberta OIDC fixada e rotação JWKS](docs/modules/40_PINNED_OIDC_DISCOVERY_ROTATION.md)
+41. [Mudanças de confiança OIDC aprovadas independentemente](docs/modules/41_APPROVED_OIDC_TRUST_CHANGES.md)
+42. [Monitoramento determinístico da confiança OIDC](docs/modules/42_OIDC_TRUST_MONITORING.md)
+43. [Entrega autenticada e idempotente de alertas](docs/modules/43_AUTHENTICATED_OIDC_ALERT_DELIVERY.md)
+44. [Ciclos monitorados com lease transacional](docs/modules/44_LEASED_OIDC_MONITOR_CYCLES.md)
+
+Os exercícios correspondentes estão em [`docs/training`](docs/training) e a ordem didática está
+no [guia de treinamento](docs/TRAINING_GUIDE.md). O estado e os limites de cada etapa aparecem no
+[roadmap](docs/ROADMAP.md).
+
+### Evolução detalhada recente
+
 O módulo 19 adiciona `specvora generate-promoted`: geração de Pytest/HTTPX a partir
 de cenários promovidos, com vínculos explícitos e gate determinístico. Não executa testes.
 Consulte [o módulo](docs/modules/19_PROMOTED_TEST_GENERATION.md) e
@@ -170,14 +237,14 @@ idempotência estável e retentativas limitadas. A notificação não recebe aut
 O módulo 44 executa monitoramento e entrega em um ciclo único com lease transacional e histórico
 SQLite sem segredos. O agendamento local exige autorização explícita e nunca roda rotação de trust.
 
-O módulo 17 adiciona `specvora-governance` para aprovações Ed25519 e avaliação conjunta
-de resultados API/web. O módulo 18 integra essa verificação ao portal e aos executores.
-Consulte `docs/modules/17_SIGNED_APPROVALS_COMBINED_RELEASE.md` e o laboratório correspondente.
+### Documentos gerais
 
-- `docs/PRODUCT.md`: proposta comercial e público-alvo;
-- `docs/ARCHITECTURE.md`: componentes e fluxo;
-- `docs/SECURITY.md`: modelo de ameaças e controles;
-- `docs/ROADMAP.md`: caminho de MVP a SaaS;
-- `docs/PRESENTATION.md`: roteiro de apresentação profissional;
-- `docs/CI_CD.md`: integração na esteira.
+- [Produto](docs/PRODUCT.md): proposta comercial e público-alvo;
+- [Arquitetura](docs/ARCHITECTURE.md): componentes e fluxo;
+- [Segurança](docs/SECURITY.md): modelo de ameaças e controles;
+- [Roadmap](docs/ROADMAP.md): caminho do MVP à operação;
+- [Apresentação](docs/PRESENTATION.md): roteiro de apresentação profissional;
+- [CI/CD](docs/CI_CD.md): integração na esteira;
+- [Changelog](CHANGELOG.md): histórico de versões;
+- [Checklist da release](docs/RELEASE_CHECKLIST.md): validações para publicar a versão.
 
